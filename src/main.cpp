@@ -2,7 +2,6 @@
 #include <hal.h>
 #include "outputs.h"
 #include "moto.h"
-#include "moto_task.h"
 
 #define _TASK_OO_CALLBACKS
 
@@ -22,8 +21,8 @@ void setup() {
   outputs[PWM_CH_LED_LOCAL].set(true);
 
 
-  moto_task::start();
-
+  moto.init();
+  
 }
 
 void loop() {

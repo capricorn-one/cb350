@@ -15,11 +15,10 @@ class motorcycle : public moto_task {
 
 public:
 
-    motorcycle(const char *name) : moto_task(name) {}
+    motorcycle(const char *name) : moto_task(name, 20) {}
+    motorcycle(const char *name, unsigned long aInterval) : moto_task(name, aInterval) {}
     
-
     void init(void);
-
 
     uint8_t getGearNumber(void) { return vfd_telem.gear.num; }
 

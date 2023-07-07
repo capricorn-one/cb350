@@ -16,8 +16,8 @@ class GUI : public moto_task {
 
 public:
 
-    GUI(const char *name);
-    ~GUI() {}
+    GUI(const char *name) : moto_task(name, 30) {}
+    GUI(const char *name, unsigned long aInterval) : moto_task(name, aInterval) {}
 
     void init(void);
     

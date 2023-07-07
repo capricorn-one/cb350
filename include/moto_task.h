@@ -13,13 +13,10 @@ class moto_task : public Task {
 
 public:
 
-    moto_task(const char *tagName);
-    moto_task(const char *tagName, unsigned long aInterval, long aIterations);
-    ~moto_task() {}
+    moto_task(const char *tagName, unsigned long aInterval);
 
     char * tag(void) { return taskName; }
 
-    static void start(void);
     static void run(void);
 
 protected:
@@ -31,8 +28,6 @@ protected:
 private:
 
     char taskName[16];
-
-    void initialize_task(const char *tagName, unsigned long aInterval, long aIterations);
 
     bool Callback(void);
     bool OnEnable(void);

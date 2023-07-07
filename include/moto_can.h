@@ -8,8 +8,8 @@ class canbus : public moto_task {
 
 public:
 
-    canbus(const char *tagName);
-    ~canbus() {}
+    canbus(const char *name) : moto_task(name, 10) {}
+    canbus(const char *name, unsigned long aInterval) : moto_task(name, aInterval) {}
 
     void init(void);
     

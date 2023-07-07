@@ -72,4 +72,4 @@ void starterMotor::solenoid_read_current(void) {
 
 }
 
-starterMotor starter("STARTER");
+starterMotor starter("starter");

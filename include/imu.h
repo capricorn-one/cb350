@@ -9,8 +9,8 @@ class mm_imu : public moto_task {
 
 public:
 
-    mm_imu(const char *name);
-    ~mm_imu() {}
+    mm_imu(const char *name) : moto_task(name, 100) {}
+    mm_imu(const char *name, unsigned long aInterval) : moto_task(name, aInterval) {}
 
     float get_accel_x(void) { return accel_x; }
     float get_accel_y(void) { return accel_y; }

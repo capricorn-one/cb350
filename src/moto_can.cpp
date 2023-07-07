@@ -26,10 +26,6 @@ void can_rx_callback(void)
 	can_data_ready_flag = true;
 }
 
-canbus::canbus(const char *name) : moto_task(name) {
-
-}
-
 void canbus::init(void) {
 
 	if(CAN0.begin(MCP_EXT, CAN_250KBPS, MCP_16MHZ) == CAN_OK) {

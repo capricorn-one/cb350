@@ -1,14 +1,14 @@
 #include "moto.h"
-#include "GUI.h"
-#include "power.h"
-#include "moto_can.h"
 #include "turnSignals.h"
-#include "starterMotor.h"
 #include "telemetry.h"
+#include "moto_can.h"
+#include "moto.h"
 #include "imu.h"
+#include "GUI.h"
+#include "starterMotor.h"
+#include "power.h"
 #include "hal.h"
-
-
+#include "outputs.h"
 
 // static void accelerometer_int1_callback(uint8_t state) { }
 // static void accelerometer_int2_callback(uint8_t state) { }
@@ -55,11 +55,9 @@ void motorcycle::init() {
 
     // starter.init();
 
-    telem.setInterval(250);
-    moto_can.setInterval(10);
-    gui.setInterval(50);
-    imu.setInterval(100);
-
+    telem.init();
+    moto_can.init();
+    gui.init();
 
     setMode(MOTO_MODE_STARTUP);
 }
@@ -157,6 +155,12 @@ void motorcycle::setMode(moto_mode_t mode) {
 }
 
 void motorcycle::startupModeUpdate(void) {
+
+    telem.enable();
+    imu.enable();
+    moto_can.enable();
+    gui.enable();
+    
     ignitionModeUpdate();       // temporary until makes more sense later
 }
 
@@ -266,7 +270,7 @@ void motorcycle::ignitionEnable(bool state) {
     pwr_output.set(POWER_OUTPUT_IGNITION, state);
 }
 
-motorcycle moto("MOTO");
+motorcycle moto("moto");
 
 
 /**** END OF MOTORCYCLE CLASS ****/

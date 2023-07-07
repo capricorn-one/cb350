@@ -66,14 +66,10 @@ FT81x ft81x(PIN_LCD_CS);
 //     return lut[angle];
 // }
 
+void GUI::init() {
 
-GUI::GUI(const char *name) : moto_task(name) {
     theme_primary_color.full = 0xBFBC;
     theme_secondary_color.full = 0xF5DD;
-}
-
-
-void GUI::init() {
 
     // static lv_indev_drv_t indev_drv;
 

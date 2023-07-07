@@ -8,8 +8,8 @@ class telemetry : public moto_task {
 
 public:
 
-    telemetry(const char *name) : moto_task(name) {}
-    ~telemetry() {}
+    telemetry(const char *name) : moto_task(name, 50) {}
+    telemetry(const char *name, unsigned long aInterval) : moto_task(name, aInterval) {}
     
     void init(void);
     

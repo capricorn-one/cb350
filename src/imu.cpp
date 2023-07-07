@@ -61,18 +61,15 @@
 // 	return rc;
 // }
 
+bool mm_imu::begin(void) {
 
-mm_imu::mm_imu(const char *name) : moto_task(name) {
-    accel_x = 0.0f;
+	accel_x = 0.0f;
     accel_y = 0.0f;
     accel_z = 0.0f;
 
     gyro_x = 0.0f;
     gyro_y = 0.0f;
     gyro_z = 0.0f;
-}
-
-bool mm_imu::begin(void) {
 
 	return true;
 }

@@ -108,4 +108,4 @@ void telemetry::update(void) {
 //     return ads131m0x_get_channel_data_raw(telem_data);
 // }
 
-telemetry telem("TELEM");
+telemetry telem("telem");

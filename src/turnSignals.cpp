@@ -120,4 +120,4 @@ void turn_signals::setMode(turn_signal_mode_t newMode) {
     mode = newMode;
 }
 
-turn_signals blinkers("BLINKERS");
+turn_signals blinkers("blinkers");
