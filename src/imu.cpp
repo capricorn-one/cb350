@@ -74,8 +74,7 @@ mm_imu::mm_imu(const char *name) : moto_task(name) {
 
 bool mm_imu::begin(void) {
 
-
-
+	return true;
 }
 
 void mm_imu::update(void) {
@@ -95,4 +94,4 @@ void mm_imu::update(void) {
 
 }
 
-mm_imu imu;
+mm_imu imu("imu");

@@ -56,80 +56,84 @@ void telemetry::init(void) {
     int err;
 
     /* Configure channels individually prior to sampling. */
-	for (size_t i = 0U; i < ARRAY_SIZE(adc_channels); i++) {
-		if (!device_is_ready(adc_channels[i].dev)) {
-			printk("ADC controller device %s not ready\n", adc_channels[i].dev->name);
-			return;
-		}
+	// for (size_t i = 0U; i < ARRAY_SIZE(adc_channels); i++) {
+	// 	if (!device_is_ready(adc_channels[i].dev)) {
+	// 		printk("ADC controller device %s not ready\n", adc_channels[i].dev->name);
+	// 		return;
+	// 	}
 
-		err = adc_channel_setup_dt(&adc_channels[i]);
-		if (err < 0) {
-			printk("Could not setup channel #%d (%d)\n", i, err);
-			return;
-		}
-	}
+	// 	err = adc_channel_setup_dt(&adc_channels[i]);
+	// 	if (err < 0) {
+	// 		printk("Could not setup channel #%d (%d)\n", i, err);
+	// 		return;
+	// 	}
+	// }
 
     outputs[PWM_CH_DSEL].set(false);
     outputs[PWM_CH_DEN].set(true);      // enable diagnostics on BTS chips
 
-    ads131m0x_set_channel_max(TELEM_DATA_STARTER_CURRENT, 200.);            // Vadc/470 = Is.  Iload = Is * dkILIS. Iload = (Vadc/470) * 52100 ~= Vadc * 111. ... X2 for some reason?
-    // ads131m0x_set_channel_offset(TELEM_DATA_STARTER_CURRENT, -0.012);       // pregain offset
+    // ads131m0x_set_channel_max(TELEM_DATA_STARTER_CURRENT, 200.);            // Vadc/470 = Is.  Iload = Is * dkILIS. Iload = (Vadc/470) * 52100 ~= Vadc * 111. ... X2 for some reason?
+    // // ads131m0x_set_channel_offset(TELEM_DATA_STARTER_CURRENT, -0.012);       // pregain offset
 
-    ads131m0x_set_channel_max(TELEM_DATA_REGULATOR_CURRENT, 20.);           // 1mΩ resistor on INA180A2 (50x gain) = V / 50 / .001 = V * 20
-    // ads131m0x_set_channel_offset(TELEM_DATA_REGULATOR_CURRENT, -0.012);     // pregain offset
+    // ads131m0x_set_channel_max(TELEM_DATA_REGULATOR_CURRENT, 20.);           // 1mΩ resistor on INA180A2 (50x gain) = V / 50 / .001 = V * 20
+    // // ads131m0x_set_channel_offset(TELEM_DATA_REGULATOR_CURRENT, -0.012);     // pregain offset
 
-    ads131m0x_set_channel_max(TELEM_DATA_LOAD_CURRENT, 20.);                // 1mΩ resistor on INA180A2 (50x gain) = V / 50 / .001 = V * 20
-    // ads131m0x_set_channel_offset(TELEM_DATA_LOAD_CURRENT, -0.0004);         // pregain offset
+    // ads131m0x_set_channel_max(TELEM_DATA_LOAD_CURRENT, 20.);                // 1mΩ resistor on INA180A2 (50x gain) = V / 50 / .001 = V * 20
+    // // ads131m0x_set_channel_offset(TELEM_DATA_LOAD_CURRENT, -0.0004);         // pregain offset
 
-    ads131m0x_set_channel_max(TELEM_DATA_IS0_CURRENT, 4.5);                 // Vadc/1200 = Is. Iload = Is * 5500 (5.5mΩ stage)
-    // ads131m0x_set_channel_offset(TELEM_DATA_IS0_CURRENT, -0.014);          // pregain offset
+    // ads131m0x_set_channel_max(TELEM_DATA_IS0_CURRENT, 4.5);                 // Vadc/1200 = Is. Iload = Is * 5500 (5.5mΩ stage)
+    // // ads131m0x_set_channel_offset(TELEM_DATA_IS0_CURRENT, -0.014);          // pregain offset
 
-    ads131m0x_set_channel_max(TELEM_DATA_IS1_CURRENT, 4.5);
-    // ads131m0x_set_channel_offset(TELEM_DATA_IS1_CURRENT, -0.014);          // pregain offset
+    // ads131m0x_set_channel_max(TELEM_DATA_IS1_CURRENT, 4.5);
+    // // ads131m0x_set_channel_offset(TELEM_DATA_IS1_CURRENT, -0.014);          // pregain offset
     
-    ads131m0x_trigger_conversion();
+    // ads131m0x_trigger_conversion();
+
+    hal_adc_init();
 
 
 }
 
 void telemetry::update(void) {
-    if(ads131m0x_get_new_data()) {
+    hal_adc_update();
 
-        // IN0 Diagnostics
-        if(outputs[PWM_CH_DSEL].get() == false) {
+    // if(ads131m0x_get_new_data()) {
 
-            outputs[PWM_CH_DSEL].set(true);
+    //     // IN0 Diagnostics
+    //     if(outputs[PWM_CH_DSEL].get() == false) {
 
-            pwr_output.set_current(POWER_OUTPUT_SIGNAL_LEFT, ads131m0x_get_channel_data(TELEM_DATA_IS0_CURRENT));
-            pwr_output.set_current(POWER_OUTPUT_IGNITION, ads131m0x_get_channel_data(TELEM_DATA_IS1_CURRENT));
-            pwr_output.set_current(POWER_OUTPUT_AUXILLARY, ads131m0x_get_channel_data(TELEM_DATA_IS2_CURRENT));
-            pwr_output.set_current(POWER_OUTPUT_HIGHBEAM, ads131m0x_get_channel_data(TELEM_DATA_IS3_CURRENT));
-            pwr_output.set_current(POWER_OUTPUT_COMPRESSOR, ads131m0x_get_channel_data(TELEM_DATA_IS4_CURRENT));
+    //         outputs[PWM_CH_DSEL].set(true);
+
+    //         pwr_output.set_current(POWER_OUTPUT_SIGNAL_LEFT, ads131m0x_get_channel_data(TELEM_DATA_IS0_CURRENT));
+    //         pwr_output.set_current(POWER_OUTPUT_IGNITION, ads131m0x_get_channel_data(TELEM_DATA_IS1_CURRENT));
+    //         pwr_output.set_current(POWER_OUTPUT_AUXILLARY, ads131m0x_get_channel_data(TELEM_DATA_IS2_CURRENT));
+    //         pwr_output.set_current(POWER_OUTPUT_HIGHBEAM, ads131m0x_get_channel_data(TELEM_DATA_IS3_CURRENT));
+    //         pwr_output.set_current(POWER_OUTPUT_COMPRESSOR, ads131m0x_get_channel_data(TELEM_DATA_IS4_CURRENT));
 
         
-        }
-        // IN1 Diagnostics
-        else {
+    //     }
+    //     // IN1 Diagnostics
+    //     else {
 
-            outputs[PWM_CH_DSEL].set(false);
+    //         outputs[PWM_CH_DSEL].set(false);
 
-            pwr_output.set_current(POWER_OUTPUT_SIGNAL_RIGHT, ads131m0x_get_channel_data(TELEM_DATA_IS0_CURRENT));
-            pwr_output.set_current(POWER_OUTPUT_HORN, ads131m0x_get_channel_data(TELEM_DATA_IS1_CURRENT));
-            pwr_output.set_current(POWER_OUTPUT_HEADLIGHT, ads131m0x_get_channel_data(TELEM_DATA_IS2_CURRENT));
-            pwr_output.set_current(POWER_OUTPUT_TAIL_LIGHT, ads131m0x_get_channel_data(TELEM_DATA_IS3_CURRENT));
-            pwr_output.set_current(POWER_OUTPUT_BRAKE_LIGHT, ads131m0x_get_channel_data(TELEM_DATA_IS4_CURRENT));
+    //         pwr_output.set_current(POWER_OUTPUT_SIGNAL_RIGHT, ads131m0x_get_channel_data(TELEM_DATA_IS0_CURRENT));
+    //         pwr_output.set_current(POWER_OUTPUT_HORN, ads131m0x_get_channel_data(TELEM_DATA_IS1_CURRENT));
+    //         pwr_output.set_current(POWER_OUTPUT_HEADLIGHT, ads131m0x_get_channel_data(TELEM_DATA_IS2_CURRENT));
+    //         pwr_output.set_current(POWER_OUTPUT_TAIL_LIGHT, ads131m0x_get_channel_data(TELEM_DATA_IS3_CURRENT));
+    //         pwr_output.set_current(POWER_OUTPUT_BRAKE_LIGHT, ads131m0x_get_channel_data(TELEM_DATA_IS4_CURRENT));
 
-        }
+    //     }
 
-        pwr_output.set_current(POWER_OUTPUT_STARTER, ads131m0x_get_channel_data(TELEM_DATA_STARTER_CURRENT));
+    //     pwr_output.set_current(POWER_OUTPUT_STARTER, ads131m0x_get_channel_data(TELEM_DATA_STARTER_CURRENT));
 
-        regulator_current = ads131m0x_get_channel_data(TELEM_DATA_REGULATOR_CURRENT);
+    //     regulator_current = ads131m0x_get_channel_data(TELEM_DATA_REGULATOR_CURRENT);
 
-        load_current = ads131m0x_get_channel_data(TELEM_DATA_LOAD_CURRENT);
+    //     load_current = ads131m0x_get_channel_data(TELEM_DATA_LOAD_CURRENT);
 
-        // start next conversion
-        ads131m0x_trigger_conversion();
-    }
+    //     // start next conversion
+    //     ads131m0x_trigger_conversion();
+    // }
 
 }
 

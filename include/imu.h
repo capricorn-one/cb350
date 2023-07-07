@@ -21,7 +21,7 @@ public:
 
 protected:
 
-    bool begin(void) {}
+    bool begin(void);
     void update(void);
     void exit(void) {}
 

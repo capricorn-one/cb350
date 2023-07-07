@@ -79,7 +79,7 @@ public:
 
 protected:
 
-    bool begin(void) {}
+    bool begin(void) { return true; }
     void update(void);
     void exit(void) {}
 

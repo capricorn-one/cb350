@@ -18,7 +18,7 @@ protected:
 
     bool begin(void);
     void update(void);
-    void exit(void) {}
+    void exit(void);
 
 private:
 
