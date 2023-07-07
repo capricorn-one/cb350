@@ -9,6 +9,7 @@ class canbus : public moto_task {
 public:
 
     canbus(const char *tagName);
+    ~canbus() {}
 
     void init(void);
     
@@ -16,7 +17,7 @@ public:
 
 protected:
 
-    bool begin(void) {}
+    bool begin(void) { return true; }
     void update(void);
     void exit(void) {}
 

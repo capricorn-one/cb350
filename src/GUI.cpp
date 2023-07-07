@@ -222,6 +222,7 @@ bool GUI::begin() {
 
     lv_task_handler();
 
+    return true;
 }
 
 void GUI::drawTelemetry(void) {

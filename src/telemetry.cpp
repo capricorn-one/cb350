@@ -4,39 +4,6 @@
 #include "hal.h"
 #include "hal_adc.h"
 
-static int adc_nrf_init(void) {
-
-    int err;
-	// uint32_t count = 0;
-	// uint16_t buf;
-
-	// struct adc_sequence sequence = {
-	// 	.buffer = &buf,
-	// 	/* buffer size in bytes, not number of samples */
-	// 	.buffer_size = sizeof(buf),
-	// };
-
-    // /* Configure channels individually prior to sampling. */
-	// for (size_t i = 0U; i < ARRAY_SIZE(adc_channels); i++) {
-	// 	if (!device_is_ready(adc_channels[i].dev)) {
-	// 		printk("ADC controller device %s not ready\n", adc_channels[i].dev->name);
-	// 		return 0;
-	// 	}
-
-	// 	err = adc_channel_setup_dt(&adc_channels[i]);
-	// 	if (err < 0) {
-	// 		printk("Could not setup channel #%d (%d)\n", i, err);
-	// 		return 0;
-	// 	}
-	// }
-
-}
-
-static int adc_nrf_read(float *adc0, float *adc1) {
-    
-    return 0;
-}
-
 typedef enum {
     TELEM_DATA_STARTER_CURRENT = 0,
     TELEM_DATA_REGULATOR_CURRENT = 1,
@@ -53,7 +20,7 @@ void telemetry::init(void) {
 
     // Need to setup analog inputs for battery voltage monitoring and starter current monitoring
     // Use the 12 bit SAADC on-board the nRF5340
-    int err;
+    // int err;
 
     /* Configure channels individually prior to sampling. */
 	// for (size_t i = 0U; i < ARRAY_SIZE(adc_channels); i++) {

@@ -4,22 +4,8 @@
 
 static Scheduler moto_scheduler;
 
-template <typename T>
-struct Callback;
 
-template <typename Ret, typename... Params>
-struct Callback<Ret(Params...)> {
-   template <typename... Args> 
-   static Ret callback(Args... args) {                    
-      func(args...);  
-   }
-   static std::function<Ret(Params...)> func; 
-};
-
-template <typename Ret, typename... Params>
-std::function<Ret(Params...)> Callback<Ret(Params...)>::func;
-
-moto_task::moto_task(const char *tagName, unsigned long aInterval, long aIterations) {
+moto_task::moto_task(const char *tagName, unsigned long aInterval, long aIterations) : Task(aInterval, aIterations, &moto_scheduler, false) {
     initialize_task(tagName, aInterval, aIterations);
 }
 
@@ -31,32 +17,21 @@ void moto_task::initialize_task(const char *tagName, unsigned long aInterval, lo
     
     strncpy(taskName, tagName, 16);
 
-    Callback<void(void)>::func = std::bind(&moto_task::_update, this);
-    TaskCallback aCallback = static_cast<TaskCallback>(Callback<void(void)>::callback);
-
-    Callback<bool(void)>::func = std::bind(&moto_task::_begin, this);
-    TaskOnEnable aOnEnable = static_cast<TaskOnEnable>(Callback<bool(void)>::callback);
-
-    Callback<void(void)>::func = std::bind(&moto_task::_exit, this);
-    TaskOnDisable aOnDisable = static_cast<TaskOnDisable>(Callback<void(void)>::callback);
-    
-    set(aInterval, aIterations, aCallback, aOnEnable, aOnDisable);
-
-    moto_scheduler.addTask(*this);
 }
 
-bool moto_task::_begin(void) {
+bool moto_task::OnEnable(void) {
     LOG_INF("Starting task %s", taskName);
     return begin();
 }
 
-void moto_task::_exit(void) {
+void moto_task::OnDisable(void) {
     LOG_INF("Exiting task %s", taskName);
     exit();
 }
 
-void moto_task::_update(void) {
+bool moto_task::Callback(void) {
     update();
+    return true;
 }
 
 void moto_task::start(void) {

@@ -2,26 +2,26 @@
 #include "hal.h"
 #include "hal_imu.h"
 
-static const char *now_str(void)
-{
-	static char buf[16]; /* ...HH:MM:SS.MMM */
-	uint32_t now = hal_millis();
-	unsigned int ms = now % 1000;
-	unsigned int s;
-	unsigned int min;
-	unsigned int h;
+// static const char *now_str(void)
+// {
+// 	static char buf[16]; /* ...HH:MM:SS.MMM */
+// 	uint32_t now = hal_millis();
+// 	unsigned int ms = now % 1000;
+// 	unsigned int s;
+// 	unsigned int min;
+// 	unsigned int h;
 
-	now /= 1000;
-	s = now % 60U;
-	now /= 60U;
-	min = now % 60U;
-	now /= 60U;
-	h = now;
+// 	now /= 1000;
+// 	s = now % 60U;
+// 	now /= 60U;
+// 	min = now % 60U;
+// 	now /= 60U;
+// 	h = now;
 
-	snprintf(buf, sizeof(buf), "%u:%02u:%02u.%03u",
-		 h, min, s, ms);
-	return buf;
-}
+// 	snprintf(buf, sizeof(buf), "%u:%02u:%02u.%03u",
+// 		 h, min, s, ms);
+// 	return buf;
+// }
 
 // static int process_mpu6050(const struct device *dev)
 // {

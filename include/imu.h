@@ -10,6 +10,7 @@ class mm_imu : public moto_task {
 public:
 
     mm_imu(const char *name);
+    ~mm_imu() {}
 
     float get_accel_x(void) { return accel_x; }
     float get_accel_y(void) { return accel_y; }

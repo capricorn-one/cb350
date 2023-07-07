@@ -9,6 +9,7 @@ class starterMotor : public moto_task {
 public:
 
     starterMotor(const char * name) : moto_task(name) {}
+    ~starterMotor() {}
 
     uint8_t getDatapointMax(void) { return datapoint_counter; }
     solenoid_datapoint_t * getDatapoints(void) { return datapoints; }

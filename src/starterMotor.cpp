@@ -17,6 +17,8 @@ bool starterMotor::begin() {
     // // telem.setTaskDelay(50);                     // Match local adc reading to starter motor task rate
     enableTimer = hal_millis();
     solenoid_enable(true);
+
+    return true;
 }
 
 void starterMotor::exit(void) {

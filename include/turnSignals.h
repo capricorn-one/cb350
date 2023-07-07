@@ -24,13 +24,14 @@ class turn_signals : public moto_task {
 public:
 
     turn_signals(const char *name) : moto_task(name) {}
+    ~turn_signals() {}
 
     void setMode(turn_signal_mode_t newMode);
     turn_signal_mode_t getMode(void) { return mode; }
 
 protected:
 
-    bool begin(void) {}
+    bool begin(void) { return true; }
     void update(void);
     void exit(void) {}
 

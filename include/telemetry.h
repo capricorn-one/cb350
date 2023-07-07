@@ -9,7 +9,8 @@ class telemetry : public moto_task {
 public:
 
     telemetry(const char *name) : moto_task(name) {}
-
+    ~telemetry() {}
+    
     void init(void);
     
     float get_battery_voltage(void) { return battery_voltage; }
@@ -19,7 +20,7 @@ public:
 
 protected:
 
-    bool begin(void) {}
+    bool begin(void) { return true; }
     void update(void);
     void exit(void) {}
 

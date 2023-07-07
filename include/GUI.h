@@ -17,6 +17,7 @@ class GUI : public moto_task {
 public:
 
     GUI(const char *name);
+    ~GUI() {}
 
     void init(void);
     

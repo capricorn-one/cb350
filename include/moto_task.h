@@ -4,7 +4,10 @@
 
 #include <stdint.h>
 #include <stdbool.h>
-#include <TaskScheduler.h>
+
+#define _TASK_OO_CALLBACKS
+
+#include <TaskSchedulerDeclarations.h>
 
 class moto_task : public Task {
 
@@ -12,6 +15,7 @@ public:
 
     moto_task(const char *tagName);
     moto_task(const char *tagName, unsigned long aInterval, long aIterations);
+    ~moto_task() {}
 
     char * tag(void) { return taskName; }
 
@@ -30,9 +34,9 @@ private:
 
     void initialize_task(const char *tagName, unsigned long aInterval, long aIterations);
 
-    bool _begin(void);
-    void _update(void);
-    void _exit(void);
+    bool Callback(void);
+    bool OnEnable(void);
+    void OnDisable(void);
 };
 
 #endif /* _MOTO_TASK_H_ */

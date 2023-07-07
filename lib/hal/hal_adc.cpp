@@ -47,7 +47,7 @@ static bool adc_dataReady(void) {
 }
 
 
-static void adc_transfer_frame(bool blocking) {
+static void adc_transfer_frame(void) {
 
     while(!adc_transfer_done) {
         // wait for transfer to complete
@@ -60,11 +60,11 @@ static void adc_transfer_frame(bool blocking) {
     // }
     adc_dmaStat = adc_zeroDMA.startJob();
 
-	if(blocking) {
-        while(!adc_transfer_done) {
-            // wait for transfer to complete
-        }
-    }
+	// if(blocking) {
+    //     while(!adc_transfer_done) {
+    //         // wait for transfer to complete
+    //     }
+    // }
     // SPI.endTransaction();
 }
 
