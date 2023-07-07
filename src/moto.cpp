@@ -34,26 +34,11 @@ void motorcycle::init() {
 
     pwr_output.init();
 
-    // hal_moto_interrupts_init();
-
-    // iox.registerInputCallbackFunction(IOX_IN_ACCEL_INT_2, accelerometer_int2_callback);
-    // iox.registerInputCallbackFunction(IOX_IN_ACCEL_INT_1, accelerometer_int1_callback);
-
-    // iox.registerInputCallbackFunction(IOX_IN_HALL_SENSOR, hall_sensor_int_callback);
-
-
-    // iox.registerInputCallbackFunction(IOX_IN_MOTO_LOCK, moto_ignition_lock_int_callback);
-    // iox.registerInputCallbackFunction(IOX_IN_MOTO_PARK, moto_park_int_callback);
-    // iox.registerInputCallbackFunction(IOX_IN_MOTO_REAR_BRAKE, moto_brake_int_callback);
-    // iox.registerInputCallbackFunction(IOX_IN_MOTO_KICKSTAND, moto_kickstand_int_callback);
-
     // Reset auxiillary power... need to understand why this fucks with the LIN
     pwr_output.set(POWER_OUTPUT_AUXILLARY, false);
     hal_delay_ms(500);
     pwr_output.set(POWER_OUTPUT_AUXILLARY, true);
     hal_delay_ms(250);
-
-    // starter.init();
 
     telem.init();
     moto_can.init();

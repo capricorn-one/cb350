@@ -29,18 +29,6 @@ void starterMotor::exit(void) {
 
 void starterMotor::solenoid_enable(bool state) {
 
-    // lin_frame_t lin_frame;
-
-    // if(state) {
-    //     lin_frame.response[0] = 0x01;
-    //     lin_frame.response[1] = 0x01;
-    // }
-    // else {
-    //     lin_frame.response[0] = 0x10;
-    //     lin_frame.response[1] = 0x10;
-    // }
-
-    // lin.write(&lin_frame, MANSEN_MOTO_LIN_ID_SOLENOID_WRITE);
     pwr_output.set(POWER_OUTPUT_STARTER, state);
 }
 
