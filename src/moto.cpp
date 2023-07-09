@@ -40,9 +40,7 @@ void motorcycle::init() {
     pwr_output.set(POWER_OUTPUT_AUXILLARY, true);
     hal_delay_ms(250);
 
-    telem.init();
-    moto_can.init();
-    gui.init();
+
 
     setMode(MOTO_MODE_STARTUP);
 }

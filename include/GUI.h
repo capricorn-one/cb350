@@ -1,7 +1,6 @@
 #ifndef GUI_H
 #define GUI_H
 
-#include <lvgl.h>
 #include "moto_task.h"
 
 typedef enum {
@@ -25,8 +24,6 @@ public:
 
     // void drawButton(const char *name);
 
-    lv_color_t theme_primary_color, theme_secondary_color;
-
 protected:
 
     bool begin(void);
@@ -47,14 +44,7 @@ private:
 
 private:
 
-    const struct device *display_dev;
 
-    lv_obj_t * bar;
-
-    lv_style_t style_bg;
-    lv_style_t style_indic;
-
-    lv_obj_t *adc_value[12];
 };
 
 extern GUI gui;

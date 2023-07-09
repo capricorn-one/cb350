@@ -19,7 +19,6 @@
     void hal_delay_us(uint32_t us);
 
     uint32_t hal_millis(void);
-
     
     int8_t hal_wire_transfer(TwoWire *twi, uint8_t addr, uint8_t reg, uint8_t *data, size_t len, bool read);
 
