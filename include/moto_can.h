@@ -13,7 +13,7 @@ public:
 
     void init(void);
     
-    void send_hubOutputStates(uint16_t states);
+    void send_output_state_change(uint16_t states);
 
 protected:
 

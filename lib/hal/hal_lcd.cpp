@@ -15,6 +15,8 @@ void hal_lcd_init(void) {
     ft81x.begin();
 
     ft81x.setRotation(3);
+
+    hal_lcd_test_ft81x();
 }
 
 void hal_lcd_enable(bool state) {
