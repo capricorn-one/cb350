@@ -34,11 +34,20 @@ void motorcycle::init() {
 
     pwr_output.init();
 
+    outputClass::init();
+
+    // Flash the local LED to show that the program is running
     // Reset auxiillary power... need to understand why this fucks with the LIN
+    outputs[PWM_CH_LED_LOCAL].set(true);
     pwr_output.set(POWER_OUTPUT_AUXILLARY, false);
-    hal_delay_ms(500);
+    delay(500);
+    outputs[PWM_CH_LED_LOCAL].set(false);
     pwr_output.set(POWER_OUTPUT_AUXILLARY, true);
-    hal_delay_ms(250);
+    delay(250);
+
+    outputs[PWM_CH_LED_LOCAL].set(true);
+    delay(100);
+    outputs[PWM_CH_LED_LOCAL].set(false);
 
     telem.init();
     moto_can.init();

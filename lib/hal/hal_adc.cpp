@@ -3,8 +3,8 @@
 #include <SPI.h>
 #include <Adafruit_ZeroDMA.h>
 #include "utility/dma.h"
+#include "ATSAMD21_ADC.h"
 
-#include "../ads131m0x/ads131m0x.h"
 
 
 /*********** static variables / data storage ************/
@@ -105,7 +105,7 @@ static void adc_configure_drdy_interrupt(void) {
     attachInterrupt(PIN_ADC_DRDY, adc_drdy_pin_change_callback, FALLING);
 }
 
-void hal_adc_init(void) {
+void hal_adc_init(adc_conversion_t * adc_raw_data_ptr) {
 	
 	adc_configure_spi();
 	
@@ -117,9 +117,140 @@ void hal_adc_init(void) {
     adc_hal.dataReady = &adc_dataReady;
     adc_hal.transferFrame = &adc_transfer_frame;
 
+    adc_hal.conversion = adc_raw_data_ptr;
+
+    adc_hal.clock =   CLOCK_CH0_EN_ENABLED |
+                                    CLOCK_CH1_EN_ENABLED | 
+                                    CLOCK_CH2_EN_ENABLED | 
+                                    CLOCK_CH3_EN_ENABLED | 
+                                    CLOCK_CH4_EN_ENABLED | 
+                                    CLOCK_CH5_EN_ENABLED | 
+                                    CLOCK_CH6_EN_ENABLED | 
+                                    CLOCK_CH7_EN_ENABLED | 
+                                    CLOCK_XTAL_DISABLED |
+                                    CLOCK_EXTREF_ENABLED | 
+                                    CLOCK_OSR_16256 | 
+                                    CLOCK_PWR_HR;
+
+    adc_hal.config = CFG_GC_DLY_16 | CFG_GC_EN_ENABLED;
+
+    ads131m0x_init(&adc_hal);
+
+    /**** configure local adc settings ***/
+
+    analogReference2(ADC_REF_VREFA);            // 1.25V reference used for ADS131M0x
+    analogReferenceCompensation(true);          // compensate for VREFA drift
+    analogPrescaler(ADC_PRESCALER_DIV128);      // 48MHz / 128 = 375kHz
+    analogGain(ADC_GAIN_1);                     // 1x gain
+    analogReadExtended(ADC_RESOLUTION);         // 14 bit resolution
+
 }
 
-void hal_adc_update(void) {
-    
-    // ads131m0x_get_new_data(&adc_hal);
+void hal_adc_reset(void) {
+    ads131m0x_reset(&adc_hal);
+}
+
+void hal_adc_sleep(void) {
+
+}
+
+void hal_adc_trigger_conversion(void) {
+    ads131m0x_trigger_conversion(&adc_hal);
+}
+
+void hal_adc_get_new_conversions(void) {
+    // ads131m0x_get_new_conversion(&adc_hal);      // we don't need this if using DMA and DRDY interrupt
+    ads131m0x_parse_conversion(&adc_hal);
+}
+
+void hal_adc_enable_channels(uint8_t channel_bitmap) {
+    ads131m0x_enable_channels(&adc_hal, channel_bitmap);
+}
+
+void hal_adc_disable_channels(uint8_t channel_bitmap) {
+    ads131m0x_disable_channels(&adc_hal, channel_bitmap);
+}
+
+void hal_adc_external_reference(bool state) {
+    if(state)
+        ads131m0x_enable_external_reference(&adc_hal);
+    else
+        ads131m0x_disable_external_reference(&adc_hal);
+}
+
+uint8_t hal_adc_channel_gain_get(uint8_t channel) {
+    if(channel >= HAL_ADC_CH_NUM)
+        return 0;
+    else
+        return (uint8_t)adc_hal.gain[channel];
+}
+
+void hal_adc_channel_gain_set(uint8_t channel, uint8_t pga) {
+    if(channel >= HAL_ADC_CH_NUM)
+        return;
+
+    adc_hal.gain[channel] = pga;
+
+    ads131m0x_channel_pga_update(&adc_hal);
+}
+
+void hal_adc_channel_gain_set_all(uint32_t gain_settings_packed) {
+
+    for(uint8_t i=0; i<8; i++) {
+        adc_hal.gain[i/4] = (uint8_t)( (gain_settings_packed>>(i*4)) & 0x07);
+    }
+
+    ads131m0x_channel_pga_update(&adc_hal);
+}
+
+uint16_t hal_adc_read_id(void) {
+    return ads131m0x_read_id(&adc_hal);
+}
+
+uint16_t hal_adc_read_status(void) {
+    return ads131m0x_read_status(&adc_hal);
+}
+
+void hal_adc_set_power_mode(adc_power_mode_t power_mode) {
+
+    switch(power_mode) {
+        // case ADC_POWER_MODE_STANDBY:
+        //     ads131m0x_set_power_mode(&adc_hal, ADS131M0X_POWER_MODE_STANDBY);
+        //     break;
+        // case ADC_POWER_MODE_NORMAL:
+        //     ads131m0x_set_power_mode(&adc_hal, ADS131M0X_POWER_MODE_NORMAL);
+        //     break;
+        // case ADC_POWER_MODE_DUTY_CYCLE:
+        //     ads131m0x_set_power_mode(&adc_hal, ADS131M0X_POWER_MODE_DUTY_CYCLE);
+        //     break;
+        // case ADC_POWER_MODE_DUTY_CYCLE_FAST:
+        //     ads131m0x_set_power_mode(&adc_hal, ADS131M0X_POWER_MODE_DUTY_CYCLE_FAST);
+        //     break;
+        // case ADC_POWER_MODE_DUTY_CYCLE_TURBO:
+        //     ads131m0x_set_power_mode(&adc_hal, ADS131M0X_POWER_MODE_DUTY_CYCLE_TURBO);
+        //     break;
+        // case ADC_POWER_MODE_DUTY_CYCLE_TURBO_FAST:
+        //     ads131m0x_set_power_mode(&adc_hal, ADS131M0X_POWER_MODE_DUTY_CYCLE_TURBO_FAST);
+        //     break;
+        default:
+            break;
+    }
+
+}
+
+
+int16_t hal_adc_sam_differential_read(uint8_t pos_pin, uint8_t neg_pin) {
+    return analogDifferential(pos_pin, neg_pin);
+}
+
+int16_t hal_adc_sam_analog_read(uint8_t pin) {
+    return analogRead(pin);
+}
+
+int16_t hal_adc_sam_internal_temp_read(void) {
+    return analogDifferentialRaw(ADC_PIN_TEMP, ADC_PIN_GND);
+}
+
+int16_t hal_adc_sam_vcc_read(void) {
+    return analogDifferentialRaw(ADC_PIN_SCALEDIOVCC , ADC_PIN_GND);
 }

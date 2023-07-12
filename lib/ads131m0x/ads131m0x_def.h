@@ -1,12 +1,5 @@
-/* 
- * File:   ads131m08.h
- * Author: colin
- *
- * Created on February 11, 2023, 2:15 PM
- */
-
-#ifndef ADS131M08_H
-#define	ADS131M08_H
+#ifndef ADS131M0X_DEF_H_
+#define	ADS131M0X_DEF_H_
 
 #ifdef	__cplusplus
 extern "C" {
@@ -46,6 +39,27 @@ extern "C" {
     #define NDEBUG
 #endif
 
+#if defined(WORD_LENGTH_16BIT_TRUNCATED)
+#define WLENGTH     2
+#elif defined(WORD_LENGTH_24BIT) 
+#define WLENGTH     3
+#elif defined(WORD_LENGTH_32BIT_SIGN_EXTEND) 
+#define WLENGTH     4
+#elif defined(WORD_LENGTH_32BIT_ZERO_PADDED)
+#define WLENGTH     4
+#endif
+
+
+#define FRAME_LENGTH	((ADS131M0X_CHANNEL_COUNT + 2) * WLENGTH)		// 2 for Command and CRC
+
+#define ADS131M0X_GAIN_1X           0
+#define ADS131M0X_GAIN_2X           1
+#define ADS131M0X_GAIN_4X           2
+#define ADS131M0X_GAIN_8X           3
+#define ADS131M0X_GAIN_16X          4
+#define ADS131M0X_GAIN_32X          5
+#define ADS131M0X_GAIN_64X          6
+#define ADS131M0X_GAIN_128X         7
 
 //
 // Validation
@@ -1555,4 +1569,4 @@ extern "C" {
 }
 #endif
 
-#endif	/* ADS131M08_H */
+#endif	/* ADS131M0X_DEF_H_ */

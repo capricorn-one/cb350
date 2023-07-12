@@ -52,11 +52,9 @@ void hal_init(void) {
     pinMode(PIN_PARK, INPUT);
     pinMode(PIN_KICKSTAND, INPUT);
 
-    Serial.begin(9600);
+    Serial.begin(115200);
 
-    while(!Serial);
-
-    hal_adc_init();
+    // while(!Serial);
 
     hal_can_init();
 

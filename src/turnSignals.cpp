@@ -117,6 +117,14 @@ void turn_signals::setMode(turn_signal_mode_t newMode) {
             break;
     }
 
+    if( (mode == TURN_SIGNAL_MODE_OFF) && (newMode != TURN_SIGNAL_MODE_OFF) ) {
+        enable();
+    }
+    
+    if( (mode != TURN_SIGNAL_MODE_OFF) && (newMode == TURN_SIGNAL_MODE_OFF) ) {
+        disable();
+    }
+    
     mode = newMode;
 }
 

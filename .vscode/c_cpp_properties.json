@@ -14,9 +14,9 @@
                 "C:/Users/colin/source/repos/cb350/lib/hal",
                 "C:/Users/colin/source/repos/cb350/lib/ads131m0x",
                 "C:/Users/colin/source/repos/cb350/lib/ft81x",
+                "C:/Users/colin/source/repos/cb350/.pio/libdeps/mm_cb350_power/ACAN2515/src",
                 "C:/Users/colin/source/repos/cb350/.pio/libdeps/mm_cb350_power/MPU6050/src",
                 "C:/Users/colin/.platformio/packages/framework-arduino-samd-adafruit/libraries/Wire",
-                "C:/Users/colin/source/repos/cb350/.pio/libdeps/mm_cb350_power/mcp_can",
                 "C:/Users/colin/source/repos/cb350/.pio/libdeps/mm_cb350_power/CAN/src",
                 "C:/Users/colin/.platformio/packages/framework-arduino-samd-adafruit/libraries/SPI",
                 "C:/Users/colin/source/repos/cb350/.pio/libdeps/mm_cb350_power/Adafruit Zero DMA Library",
@@ -55,9 +55,9 @@
                     "C:/Users/colin/source/repos/cb350/lib/hal",
                     "C:/Users/colin/source/repos/cb350/lib/ads131m0x",
                     "C:/Users/colin/source/repos/cb350/lib/ft81x",
+                    "C:/Users/colin/source/repos/cb350/.pio/libdeps/mm_cb350_power/ACAN2515/src",
                     "C:/Users/colin/source/repos/cb350/.pio/libdeps/mm_cb350_power/MPU6050/src",
                     "C:/Users/colin/.platformio/packages/framework-arduino-samd-adafruit/libraries/Wire",
-                    "C:/Users/colin/source/repos/cb350/.pio/libdeps/mm_cb350_power/mcp_can",
                     "C:/Users/colin/source/repos/cb350/.pio/libdeps/mm_cb350_power/CAN/src",
                     "C:/Users/colin/.platformio/packages/framework-arduino-samd-adafruit/libraries/SPI",
                     "C:/Users/colin/source/repos/cb350/.pio/libdeps/mm_cb350_power/Adafruit Zero DMA Library",
@@ -89,7 +89,7 @@
                 ]
             },
             "defines": [
-                "PLATFORMIO=60107",
+                "PLATFORMIO=60109",
                 "ARM_MATH_CM0PLUS",
                 "__SAMD21G18A__",
                 "ARDUINO=10805",
@@ -104,8 +104,8 @@
                 "ARDUINO_SAMD_ADAFRUIT",
                 ""
             ],
-            "cStandard": "c11",
-            "cppStandard": "c++11",
+            "cStandard": "gnu11",
+            "cppStandard": "gnu++11",
             "compilerPath": "C:/Users/colin/.platformio/packages/toolchain-gccarmnoneeabi/bin/arm-none-eabi-gcc.exe",
             "compilerArgs": [
                 "-mcpu=cortex-m0plus",

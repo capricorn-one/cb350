@@ -3,6 +3,7 @@
 
 #include <stdint.h>
 #include <stdbool.h>
+#include <ACAN2515.h>
 
     void hal_can_init(void);
 

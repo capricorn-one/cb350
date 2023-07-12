@@ -2,10 +2,7 @@
 #include <functional>
 #include "hal.h"
 
-
-
-static Scheduler moto_scheduler;
-
+Scheduler moto_scheduler;
 
 moto_task::moto_task(const char *tagName, unsigned long aInterval) : Task(aInterval, TASK_FOREVER, &moto_scheduler, false) {
     strncpy(taskName, tagName, 16);

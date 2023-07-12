@@ -94,7 +94,7 @@ static const uint8_t A2  = PIN_A2;
 static const uint8_t A3  = PIN_A3;
 static const uint8_t A4  = PIN_A4;
 
-#define ADC_RESOLUTION		12
+#define ADC_RESOLUTION		14
 
 /*
  * Serial interfaces
@@ -179,6 +179,20 @@ static const uint8_t SCL = PIN_WIRE_SCL;
 
 #define PIN_PARK            (7u)
 #define PIN_KICKSTAND       (8u)
+
+/** ADS131M0X CHANNELS **/
+#define ADC_STARTER_CURRENT       (0u)
+#define ADC_REGULATOR_CURRENT     (1u)
+#define ADC_LOAD_CURRENT          (2u)
+#define ADC_IS0_CURRENT           (3u)
+#define ADC_IS1_CURRENT           (4u)
+#define ADC_IS2_CURRENT           (5u)
+#define ADC_IS3_CURRENT           (6u)
+#define ADC_IS4_CURRENT           (7u)
+
+#define ADC_SAM_BATTERY_POS       (A3)
+#define ADC_SAM_BATTERY_NEG       (A2)
+#define ADC_SAM_STARTER_CURRENT   (A4)
 
 #ifdef __cplusplus
 }

@@ -1,6 +1,4 @@
 #include "ads131m0x.h"
-#include "ads131m0x_drv.h"
-#include <string.h>
 
 // #include <stdio.h>
 
@@ -20,17 +18,14 @@ uint16_t    calculateCRC(const uint8_t dataBytes[], uint8_t numberBytes, uint16_
 
 
 static uint16_t transfer_data(ads131m0x_hal_t *hal, uint16_t cmd, uint16_t data);
-static uint16_t read_frame_data(ads131m0x_hal_t *hal);
+
 
 void ads131m0x_init(ads131m0x_hal_t *hal) {
     
     for(uint8_t i=0; i<ADS131M0X_CHANNEL_COUNT; i++) {
-		hal->gain_ratio[i] = 1.00;
 		hal->conversion[i].raw = 0;
 	}
-
-	memset(hal->transfer_buffer, 0, FRAME_LENGTH);
-
+	
     ///* (OPTIONAL) Toggle nRESET pin to ensure default register settings. */
     ///* NOTE: This also ensures that the device registers are unlocked.	 */
     //hal->toggleRESET();
@@ -41,45 +36,13 @@ void ads131m0x_init(ads131m0x_hal_t *hal) {
     // uint16_t response = sendCommand(OPCODE_NULL);
     //sendCommand(OPCODE_NULL);
 
-	
+	writeSingleRegister(hal, CLOCK_ADDRESS, hal->clock);
 
-	writeSingleRegister(hal,
-						CLOCK_ADDRESS,
-						CLOCK_CH0_EN_ENABLED |
-						CLOCK_CH1_EN_ENABLED |
-						CLOCK_CH2_EN_ENABLED |
-						CLOCK_CH3_EN_ENABLED |
-						CLOCK_CH4_EN_ENABLED |
-						CLOCK_CH5_EN_ENABLED |
-						CLOCK_CH6_EN_ENABLED |
-						CLOCK_CH7_EN_ENABLED |
-						CLOCK_XTAL_DISABLED |
-						CLOCK_EXTREF_ENABLED |
-						CLOCK_OSR_16256 |
-						CLOCK_PWR_HR
-	);
-
-	writeSingleRegister(hal,
-						CFG_ADDRESS,
-						CFG_GC_DLY_65536 |
-						CFG_GC_EN_ENABLED
-	);
-
-	writeSingleRegister(hal, MODE_ADDRESS, MODE_DEFAULT);
+	writeSingleRegister(hal, CFG_ADDRESS, hal->config);
 	
-	//lockRegisters(hal);
+	ads131m0x_channel_pga_update(hal);
 	 
-	//printf("ADS131m0x found with chip id 0x%04X\r\n", readSingleRegister(hal, ID_ADDRESS));
-	 
-	// uint16_t cfg_reg = readSingleRegister(hal, CFG_ADDRESS);
-	 
-	//printf("CFG Reg 0x%04X\r\n", cfg_reg);
-	 
-	// uint16_t clock_reg = readSingleRegister(hal, CLOCK_ADDRESS);
-	
-	//printf("Clock Reg 0x%04X\r\n", clock_reg);
-	 
-	//sendCommand(OPCODE_STANDBY);
+	sendCommand(hal, OPCODE_STANDBY);
 
 }
 
@@ -96,34 +59,96 @@ void ads131m0x_trigger_conversion(ads131m0x_hal_t *hal) {
     hal->set_syncResetPin(true);
 }
 
-void ads131m0x_set_channel_gain_ratio(ads131m0x_hal_t *hal, uint8_t channel, float ratio) {
-    if(channel >= ADS131M0X_CHANNEL_COUNT)
-		return;
-
-	hal->gain_ratio[channel] = ratio;
-}
-
-void ads131m0x_get_new_data(ads131m0x_hal_t *hal) {
+void ads131m0x_get_new_conversion(ads131m0x_hal_t *hal) {
 	
 	while(!hal->dataReady());
 	
+	// watchdog kick?
+
 	// read new data
 	sendCommand(hal, OPCODE_NULL);
 
 }
 
-float ads131m0x_get_channel_data(ads131m0x_hal_t *hal, uint8_t channel) {
-    if(channel >= ADS131M0X_CHANNEL_COUNT)
-		return -1.000;
-
-	return (hal->conversion[channel].raw / 8388607.) * 1.200 * hal->gain_ratio[channel];
+void ads131m0x_parse_conversion(ads131m0x_hal_t *hal) {
+	
+	for(uint8_t i=0; i<ADS131M0X_CHANNEL_COUNT; i++) {
+		
+		hal->conversion[i].b[3] = hal->transfer_buffer[3*(i+1) + 0];
+		hal->conversion[i].b[2] = hal->transfer_buffer[3*(i+1) + 1];
+		hal->conversion[i].b[1] = hal->transfer_buffer[3*(i+1) + 2];
+		
+		hal->conversion[i].raw = hal->conversion[i].raw>>8;		// Right-shift of signed data maintains signed bit
+	}
 }
 
-int32_t ads131m0x_get_channel_data_raw(ads131m0x_hal_t *hal, uint8_t channel) {
-    if(channel >= ADS131M0X_CHANNEL_COUNT)
-		return -1;
+void ads131m0x_enable_channels(ads131m0x_hal_t *hal, uint8_t enabled_channel_bitmap) {
 
-	return hal->conversion[channel].raw;
+	uint16_t clock_reg = readSingleRegister(hal, CLOCK_ADDRESS);
+
+	clock_reg |= (enabled_channel_bitmap<<8);
+
+	writeSingleRegister(hal, CLOCK_ADDRESS, clock_reg);
+}
+
+void ads131m0x_disable_channels(ads131m0x_hal_t *hal, uint8_t disabled_channel_bitmap) {
+
+	uint16_t clock_reg = readSingleRegister(hal, CLOCK_ADDRESS);
+
+	clock_reg &= 0x00FF;		// clear enabled channel bits
+
+	clock_reg &= ~(disabled_channel_bitmap<<8);
+
+	writeSingleRegister(hal, CLOCK_ADDRESS, clock_reg);
+}
+
+void ads131m0x_enable_external_reference(ads131m0x_hal_t *hal) {
+	uint16_t clock_reg = readSingleRegister(hal, CLOCK_ADDRESS);
+
+	clock_reg |= (CLOCK_EXTREF_ENABLED);
+
+	writeSingleRegister(hal, CLOCK_ADDRESS, clock_reg);
+}
+
+void ads131m0x_disable_external_reference(ads131m0x_hal_t *hal) {
+	uint16_t clock_reg = readSingleRegister(hal, CLOCK_ADDRESS);
+
+	clock_reg &= 0x00FF;		// clear enabled channel bits
+
+	clock_reg &= ~(CLOCK_EXTREF_ENABLED);
+
+	writeSingleRegister(hal, CLOCK_ADDRESS, clock_reg);
+}
+
+void ads131m0x_channel_pga_update(ads131m0x_hal_t *hal) {
+
+	uint16_t gain_regs[0];
+
+	gain_regs[0] =  hal->gain[0] | 
+					(hal->gain[1]<<4) | 
+					(hal->gain[2]<<8) | 
+					(hal->gain[3]<<12);
+
+	gain_regs[1] =  hal->gain[4] | 
+					(hal->gain[5]<<4) | 
+					(hal->gain[6]<<8) | 
+					(hal->gain[7]<<12);
+
+	writeSingleRegister(hal, GAIN1_ADDRESS, gain_regs[0]);
+
+	writeSingleRegister(hal, GAIN2_ADDRESS, gain_regs[1]);	 
+}
+
+uint16_t ads131m0x_read_id(ads131m0x_hal_t *hal) {
+	return readSingleRegister(hal, ID_ADDRESS);
+}
+
+uint16_t ads131m0x_read_status(ads131m0x_hal_t *hal) {
+	return readSingleRegister(hal, STATUS_ADDRESS);
+}
+
+void ads131m0x_set_power_mode(ads131m0x_hal_t *hal) {
+
 }
 
 static uint16_t transfer_data(ads131m0x_hal_t *hal, uint16_t cmd, uint16_t data) {
@@ -135,28 +160,14 @@ static uint16_t transfer_data(ads131m0x_hal_t *hal, uint16_t cmd, uint16_t data)
 	hal->transfer_buffer[3] = data>>8;
 	hal->transfer_buffer[4] = data&0xFF;
 	hal->transfer_buffer[5] = 0x00;
-
 	
 	hal->transferFrame();
 	
-	return read_frame_data(hal);
-}
-
-static uint16_t read_frame_data(ads131m0x_hal_t *hal) {
-
-	for(uint8_t i=0; i<ADS131M0X_CHANNEL_COUNT; i++) {
-		
-		hal->conversion[i].b[3] = hal->transfer_buffer[3*(i+1) + 0];
-		hal->conversion[i].b[2] = hal->transfer_buffer[3*(i+1) + 1];
-		hal->conversion[i].b[1] = hal->transfer_buffer[3*(i+1) + 2];
-		
-		hal->conversion[i].raw = hal->conversion[i].raw>>8;		// Right-shift of signed data maintains signed bit
-	}
+	
 
 	//rx_buffer[27...29] = CRC
 
 	return ((hal->transfer_buffer[0]<<8) | (hal->transfer_buffer[1]&0xFF));
-
 }
 
 //*****************************************************************************
