@@ -35,7 +35,7 @@ void hal_can_init(void) {
 
     settings.mRequestedMode = ACAN2515Settings::NormalMode;
 
-    const ACAN2515Mask rxm0 = standard2515Mask (MM_CAN_ID_MASK, 0xFF, 0) ; // For filter #2 to #5
+    const ACAN2515Mask rxm0 = standard2515Mask (MM_CAN_ID_MASK, 0xFF, 0xFF) ; // last two param are data mask bytes
     
     const ACAN2515AcceptanceFilter filters [] = {
         {standard2515Filter (MM_CAN_ID_HANDLEBAR_SWITCH_STATES, 0xFF, 0xFF), mm_handlebar_swtich_states_callback_func},
@@ -65,9 +65,9 @@ void hal_can_send(uint32_t id, uint8_t *data, uint8_t len) {
 }
 
 void hal_register_handlebar_callback(void (*callback)(uint16_t *data)) {
-    // moto.handlebar_callback = callback;
+    handlebar_callback_func_ptr = callback;
 }
 
 void hal_register_vfd_callback(void (*callback)(uint16_t *data)) {
-    // moto.vfd_callback = callback;
+    vfd_callback_func_ptr = callback;
 }

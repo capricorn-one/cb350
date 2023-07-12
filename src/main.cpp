@@ -21,9 +21,7 @@ void setup() {
   moto.init();
   
   gui.init();
-
-  
-  
+ 
 }
 
 void loop() {
