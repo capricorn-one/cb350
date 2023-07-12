@@ -2,24 +2,9 @@
 #include "mm_types.h"
 #include "moto.h"
 #include "hal.h"
-
-#include <mcp_can.h>
-
-#define RX_THREAD_STACK_SIZE 512
-#define RX_THREAD_PRIORITY 2
-#define STATE_POLL_THREAD_STACK_SIZE 512
-#define STATE_POLL_THREAD_PRIORITY 2
-#define LED_MSG_ID 0x10
-#define COUNTER_MSG_ID 0x12345
-#define SET_LED 1
-#define RESET_LED 0
-#define SLEEP_TIME K_MSEC(250)
-
+#include "hal_can.h"
 
 static volatile bool can_data_ready_flag = false;
-
-MCP_CAN CAN0(PIN_CAN_CS);                              
-
 
 void can_rx_callback(void)
 {
@@ -28,15 +13,17 @@ void can_rx_callback(void)
 
 void canbus::init(void) {
 
-	if(CAN0.begin(MCP_EXT, CAN_250KBPS, MCP_16MHZ) == CAN_OK) {
-		LOG_INF("CAN0 init ok");
-		CAN0.setMode(MCP_NORMAL);
+	hal_can_init();
 
-		attachInterrupt(PIN_CAN_INT, can_rx_callback, FALLING);
-	}
-	else {
-		LOG_ERR("CAN0 init failed");
-	}
+	// if(CAN0.begin(MCP_EXT, CAN_250KBPS, MCP_16MHZ) == CAN_OK) {
+	// 	LOG_INF("CAN0 init ok");
+	// 	CAN0.setMode(MCP_NORMAL);
+
+	// 	attachInterrupt(PIN_CAN_INT, can_rx_callback, FALLING);
+	// }
+	// else {
+	// 	LOG_ERR("CAN0 init failed");
+	// }
 	// const struct can_filter handlebar_switch_filter = {
 	// 	.id = MM_CAN_ID_HANDLEBAR_SWITCH_STATES,
     //     // .rtr = CAN_DATAFRAME,
@@ -82,7 +69,7 @@ void canbus::update(void) {
 
 	// Read the new data if there is any... process it
 
-	CAN0.readMsgBuf(&rxId, &len, rxBuf);
+	// CAN0.readMsgBuf(&rxId, &len, rxBuf);
 
 	can_data_ready_flag = false;
 	// can_frame frame;
