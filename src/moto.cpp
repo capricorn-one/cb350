@@ -49,9 +49,7 @@ void motorcycle::init() {
     delay(100);
     outputs[PWM_CH_LED_LOCAL].set(false);
 
-    telem.init();
-    moto_can.init();
-    gui.init();
+
 
     setMode(MOTO_MODE_STARTUP);
 }
