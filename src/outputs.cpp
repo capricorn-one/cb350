@@ -1,28 +1,13 @@
 #include "outputs.h"
-#include "pca9685.h"
 #include "hal.h"
 #include "hal_outputs.h"
 
-pca9685 outputClass::output_controller;
-pca9685_hal_t outputClass::pca9685_hal;
-
-void outputClass::init(void) {
-
-    pca9685_hal.transfer = hal_outputs_transfer;
-    pca9685_hal.delay_ms = hal_delay_ms;
-
-    output_controller.begin(&pca9685_hal);
-}
-
 void outputClass::set(bool newState) {
-
-    state = newState;
-
-    output_controller.set_state(channel, state);
+    hal_outputs_set_state(channel, state);
 }
 
 void outputClass::set_duty_cycle(double duty_cycle) {
-    output_controller.set_duty_cycle(channel, duty_cycle);
+    hal_outputs_set_duty_cycle(channel, duty_cycle);
 }
 
 outputClass outputs[16] {

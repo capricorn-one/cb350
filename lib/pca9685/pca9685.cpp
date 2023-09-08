@@ -142,6 +142,16 @@ void pca9685::set_output_mode(bool totempole) {
     i2c_write(MODE2_REG, newmode);
 }
 
+// Assumes LED_ON registers are 0, otherwise will not work
+void pca9685::set_pwm_counters(uint8_t ch, uint16_t duty_cycle) {
+    uint8_t tx_buffer[2];
+
+    tx_buffer[0] = duty_cycle & 0xFF;
+    tx_buffer[1] = duty_cycle >> 8;
+    
+    i2c_write(LED0_OFF_L_REG + (ch*4), tx_buffer, 4);
+}
+
 void pca9685::set_pwm_counters(uint8_t ch, uint16_t on, uint16_t off) {
 
     uint8_t tx_buffer[4];

@@ -23,9 +23,11 @@
 
     void hal_adc_sleep(void);
 
-    void hal_adc_trigger_conversion(void);
+    void hal_adc_wakeup(void);
 
-    void hal_adc_get_new_conversions(void);
+    void hal_adc_clock_enable(bool state);
+
+    uint16_t hal_adc_read_conversion(void);
 
     void hal_adc_enable_channels(uint8_t channel_bitmap);
 

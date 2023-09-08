@@ -67,9 +67,6 @@ SECTIONS
 	{
 		__text_start__ = .;
 
-		KEEP(*(.sketch_boot))
-
-		. = ALIGN(0x2000);
 		KEEP(*(.isr_vector))
 		*(.text*)
 
@@ -171,7 +168,7 @@ SECTIONS
 		PROVIDE_HIDDEN (__fini_array_end = .);
 
 		KEEP(*(.jcr*))
-		. = ALIGN(16);
+		. = ALIGN(4);
 		/* All data end */
 		__data_end__ = .;
 

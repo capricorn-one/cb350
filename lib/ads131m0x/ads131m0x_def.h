@@ -49,7 +49,6 @@ extern "C" {
 #define WLENGTH     4
 #endif
 
-
 #define FRAME_LENGTH	((ADS131M0X_CHANNEL_COUNT + 2) * WLENGTH)		// 2 for Command and CRC
 
 #define ADS131M0X_GAIN_1X           0
@@ -60,6 +59,7 @@ extern "C" {
 #define ADS131M0X_GAIN_32X          5
 #define ADS131M0X_GAIN_64X          6
 #define ADS131M0X_GAIN_128X         7
+
 
 //
 // Validation

@@ -7,6 +7,8 @@
 
     void hal_outputs_init(void);
 
-    int8_t hal_outputs_transfer(uint8_t addr, uint8_t reg, uint8_t *data, size_t len, bool read);
+    void hal_outputs_set_state(uint8_t channel, bool state);
+
+    void hal_outputs_set_duty_cycle(uint8_t channel, double duty_cycle);
 
 #endif /* _HAL_OUTPUTS_H_ */

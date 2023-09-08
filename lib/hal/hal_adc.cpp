@@ -3,6 +3,7 @@
 #include <SPI.h>
 #include <Adafruit_ZeroDMA.h>
 #include "utility/dma.h"
+#include "hal_sam_tcc_pwm.h"    //check pin for adc_clock... (pwm)
 #include "ATSAMD21_ADC.h"
 
 
@@ -10,63 +11,84 @@
 /*********** static variables / data storage ************/
 ads131m0x_hal_t adc_hal;
 
+volatile uint8_t adc_transfer_buffer[FRAME_LENGTH];
+
 Adafruit_ZeroDMA adc_zeroDMA;
 ZeroDMAstatus    adc_dmaStat; // DMA status codes returned by some functions
 
-volatile bool adc_drdy_flag = false;
+volatile bool newDataReady = false;
 
-volatile bool adc_transfer_done = false;
+void adc_transfer_frame(uint8_t frame_length) {
+	
+    digitalWrite(PIN_ADC_CS, LOW);
+
+    uint8_t *data = (uint8_t *)adc_transfer_buffer;
+
+    while(frame_length--) {
+        *data = ADC_SPI.transfer(*data);
+        data++;        
+    }
+
+    digitalWrite(PIN_ADC_CS, HIGH);
+
+}
 
 
 /*********** callback functions for hal ****************/
-static void adc_drdy_pin_change_callback(void) {
-	adc_drdy_flag = true;
+void adc_drdy_pin_change_callback(void) {
+
+    // LOG("DRDY CALLBACK");
+
+    memset((void *)adc_transfer_buffer, 0, FRAME_LENGTH);
+
+    adc_transfer_frame(FRAME_LENGTH);
+
+    newDataReady = true;
+
 }
 
-static void adc_dma_transfer_callback(Adafruit_ZeroDMA *dma) {
-    (void) dma;
-    adc_transfer_done = true;
-
-    digitalWrite(PIN_ADC_CS, HIGH);
-}
-
-static void adc_set_syncResetPin(bool state) {
-
+void adc_set_syncResetPin(bool state) {
     digitalWrite(PIN_ADC_SYNC_RESET, state);
-	
-	adc_drdy_flag = false;
 }
 
+bool adc_dataReady(void) {
 
-/* The DRDY pin is an active low output that indicates when new conversion data are ready in conversion mode or
-that the requirements are met for current detection when in current-detect mode. Connect the DRDY pin to a
-digital input on the host to trigger periodic data retrieval in conversion mode.
-*/
-static bool adc_dataReady(void) {
-	return adc_drdy_flag;
-}
-
-
-static void adc_transfer_frame(void) {
-
-    while(!adc_transfer_done) {
-        // wait for transfer to complete
-    }
-	
-	digitalWrite(PIN_ADC_CS, LOW);
-
-    // while(length--) {
-    //     *rx++ = SPI.transfer(*tx++);
+    // while( ADC_DMA_TRANSFER_COMPLETE == true ) {
+    //     // wait for DMA transfer to complete
     // }
-    adc_dmaStat = adc_zeroDMA.startJob();
 
-	// if(blocking) {
-    //     while(!adc_transfer_done) {
-    //         // wait for transfer to complete
-    //     }
-    // }
-    // SPI.endTransaction();
+	return newDataReady;
+
 }
+
+// static void adc_dma_transfer_callback(Adafruit_ZeroDMA *dma) {
+//     (void) dma;
+//     adc_transfer_done = true;
+
+//     digitalWrite(PIN_ADC_CS, HIGH);
+// }
+
+
+// static void adc_transfer_frame(void) {
+
+//     while(!adc_transfer_done) {
+//         // wait for transfer to complete
+//     }
+	
+// 	digitalWrite(PIN_ADC_CS, LOW);
+
+//     // while(length--) {
+//     //     *rx++ = SPI.transfer(*tx++);
+//     // }
+//     adc_dmaStat = adc_zeroDMA.startJob();
+
+// 	// if(blocking) {
+//     //     while(!adc_transfer_done) {
+//     //         // wait for transfer to complete
+//     //     }
+//     // }
+//     // SPI.endTransaction();
+// }
 
 /*************** INITIALIZATION ROUTINES ******************/
 
@@ -74,25 +96,25 @@ static void adc_configure_spi(void) {
 	
     ADC_SPI.begin();
 
-    adc_zeroDMA.setTrigger(SERCOM0_DMAC_ID_TX);
+    // adc_zeroDMA.setTrigger(SERCOM0_DMAC_ID_TX);
 
-    adc_zeroDMA.setAction(DMA_TRIGGER_ACTON_BEAT);
+    // adc_zeroDMA.setAction(DMA_TRIGGER_ACTON_BEAT);
 
-    adc_dmaStat = adc_zeroDMA.allocate();
+    // adc_dmaStat = adc_zeroDMA.allocate();
 
-    adc_zeroDMA.addDescriptor(
-        adc_hal.transfer_buffer,                    // move data from here
-    #ifdef __SAMD51__
-        (void *)(&SERCOM2->SPI.DATA.reg), // to here (M4)
-    #else
-        (void *)(&SERCOM0->SPI.DATA.reg), // to here (M0)
-    #endif
-        FRAME_LENGTH,                      // this many...
-        DMA_BEAT_SIZE_BYTE,               // bytes/hword/words
-        true,                             // increment source addr?
-        false);                           // increment dest addr?
+    // adc_zeroDMA.addDescriptor(
+    //     adc_hal.transfer_buffer,                    // move data from here
+    // #ifdef __SAMD51__
+    //     (void *)(&SERCOM2->SPI.DATA.reg), // to here (M4)
+    // #else
+    //     (void *)(&SERCOM0->SPI.DATA.reg), // to here (M0)
+    // #endif
+    //     FRAME_LENGTH,                      // this many...
+    //     DMA_BEAT_SIZE_BYTE,               // bytes/hword/words
+    //     true,                             // increment source addr?
+    //     false);                           // increment dest addr?
 
-    adc_zeroDMA.setCallback(adc_dma_transfer_callback);
+    // adc_zeroDMA.setCallback(adc_dma_transfer_callback);
 	
     // Placing here since we are not sharing the SPI bus with any other ICs
     ADC_SPI.beginTransaction(SPISettings(8000000, MSBFIRST, SPI_MODE0));
@@ -107,15 +129,23 @@ static void adc_configure_drdy_interrupt(void) {
 
 void hal_adc_init(adc_conversion_t * adc_raw_data_ptr) {
 	
-	adc_configure_spi();
-	
-	adc_configure_drdy_interrupt();
+	digitalWrite(PIN_ADC_CS, HIGH);
+    pinMode(PIN_ADC_CS, OUTPUT);
+
+    digitalWrite(PIN_ADC_SYNC_RESET, HIGH);
+    pinMode(PIN_ADC_SYNC_RESET, OUTPUT);
+
+    adc_configure_spi();
 
     adc_hal.delay_ms = &hal_delay_ms;
     adc_hal.delay_us = &hal_delay_us;
+    adc_hal.millis = &hal_millis;
+
     adc_hal.set_syncResetPin = &adc_set_syncResetPin;
     adc_hal.dataReady = &adc_dataReady;
     adc_hal.transferFrame = &adc_transfer_frame;
+
+    adc_hal.transfer_buffer = (uint8_t *)adc_transfer_buffer;
 
     adc_hal.conversion = adc_raw_data_ptr;
 
@@ -128,16 +158,21 @@ void hal_adc_init(adc_conversion_t * adc_raw_data_ptr) {
                                     CLOCK_CH6_EN_ENABLED | 
                                     CLOCK_CH7_EN_ENABLED | 
                                     CLOCK_XTAL_DISABLED |
-                                    CLOCK_EXTREF_ENABLED | 
+                                    CLOCK_EXTREF_DISABLED | 
                                     CLOCK_OSR_16256 | 
                                     CLOCK_PWR_HR;
 
-    adc_hal.config = CFG_GC_DLY_16 | CFG_GC_EN_ENABLED;
+    adc_hal.config = CFG_GC_DLY_1024 | CFG_GC_EN_ENABLED;
+
+    hal_sam_tcc_pwm_init();
+
+    hal_adc_clock_enable(true);
 
     ads131m0x_init(&adc_hal);
 
-    /**** configure local adc settings ***/
+    adc_configure_drdy_interrupt();
 
+    /**** configure local adc settings ***/
     analogReference2(ADC_REF_VREFA);            // 1.25V reference used for ADS131M0x
     analogReferenceCompensation(true);          // compensate for VREFA drift
     analogPrescaler(ADC_PRESCALER_DIV128);      // 48MHz / 128 = 375kHz
@@ -154,14 +189,37 @@ void hal_adc_sleep(void) {
 
 }
 
-void hal_adc_trigger_conversion(void) {
-    ads131m0x_trigger_conversion(&adc_hal);
+void hal_adc_clock_enable(bool state) {
+    if(state)
+        hal_sam_tcc_pwm_start();
+    else
+        hal_sam_tcc_pwm_stop();
 }
 
-void hal_adc_get_new_conversions(void) {
-    // ads131m0x_get_new_conversion(&adc_hal);      // we don't need this if using DMA and DRDY interrupt
-    ads131m0x_parse_conversion(&adc_hal);
+uint16_t hal_adc_read_conversion(void) {
+
+    static uint32_t last_conversion_time = 0;
+
+    newDataReady = false;
+
+    uint16_t status = ads131m0x_wait_for_new_conversion(&adc_hal, 1000);
+
+    newDataReady = false;
+
+    // /*** DEBUGGING ONLY *****/
+    // LOG("%u ADC Status: 0x%04X", hal_millis() - last_conversion_time, status);
+
+    // for(uint8_t i=0; i<8; i++) {
+	// 	LOG("%u\t0x%08X\t%.6f", i, adc_hal.conversion[i].raw, hal_adc_get_conversion((hal_adc_ch_t)i, 1.0));
+    // }
+
+    // LOG("%u\t0x%08X\t%.6f", HAL_ADC_CH_VOLTAGE, adc_hal.conversion[HAL_ADC_CH_VOLTAGE].raw, hal_adc_get_conversion(HAL_ADC_CH_VOLTAGE, 1.0));
+    
+    last_conversion_time = hal_millis();
+
+    return status;
 }
+
 
 void hal_adc_enable_channels(uint8_t channel_bitmap) {
     ads131m0x_enable_channels(&adc_hal, channel_bitmap);

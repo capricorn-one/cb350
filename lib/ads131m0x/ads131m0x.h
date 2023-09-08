@@ -19,8 +19,6 @@
 #include <stdbool.h>
 #include "ads131m0x_def.h"
 
-
-
 //****************************************************************************
 //
 // Select the device variant to use...
@@ -40,26 +38,27 @@ extern "C" {
 	typedef struct {
 		void		(*delay_ms)(uint32_t milliseconds);
         void		(*delay_us)(uint32_t microseconds);
+		uint32_t	(*millis)(void);
 		void		(*set_syncResetPin)(bool state);
 		bool		(*dataReady)(void);
-		void		(*transferFrame)(void);
-		uint8_t		transfer_buffer[FRAME_LENGTH];
-		uint16_t clock;
-		uint16_t config;
-		uint8_t gain[ADS131M0X_CHANNEL_COUNT];		// more memory but much faster execution for conversions
+		void		(*transferFrame)(uint8_t frame_length);
+		uint8_t 	*transfer_buffer;
+		uint16_t 	clock;
+		uint16_t 	config;
+		uint8_t 	gain[ADS131M0X_CHANNEL_COUNT];		// more memory but much faster execution for conversions
 		ads131m0x_conversion_t *conversion;
 	} ads131m0x_hal_t;
-
-    void ads131m0x_init(ads131m0x_hal_t *hal);
+    
+    uint16_t ads131m0x_init(ads131m0x_hal_t *hal);
 
     void ads131m0x_reset(ads131m0x_hal_t *hal);
     
-    void ads131m0x_trigger_conversion(ads131m0x_hal_t *hal);
+    void ads131m0x_resync(ads131m0x_hal_t *hal);
 
-	void ads131m0x_get_new_conversion(ads131m0x_hal_t *hal);
+	uint16_t ads131m0x_wait_for_new_conversion(ads131m0x_hal_t *hal, uint32_t timeout_ms);
 
-	void ads131m0x_parse_conversion(ads131m0x_hal_t *hal);
-    
+
+    // Command Functions
 	void ads131m0x_enable_channels(ads131m0x_hal_t *hal, uint8_t enabled_channel_bitmap);
 
 	void ads131m0x_disable_channels(ads131m0x_hal_t *hal, uint8_t disabled_channel_bitmap);
@@ -74,7 +73,9 @@ extern "C" {
 
 	uint16_t ads131m0x_read_status(ads131m0x_hal_t *hal);
 
-	void ads131m0x_set_power_mode(ads131m0x_hal_t *hal);
+	void ads131m0x_standby(ads131m0x_hal_t *hal);
+
+	void ads131m0x_wakeup(ads131m0x_hal_t *hal);
 
 
 #ifdef	__cplusplus

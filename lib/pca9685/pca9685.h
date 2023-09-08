@@ -54,6 +54,8 @@ private:
 
     void set_output_mode(bool totempole);
 
+    void set_pwm_counters(uint8_t ch, uint16_t duty_cycle);
+
     void set_pwm_counters(uint8_t ch, uint16_t on, uint16_t off);
 
     int8_t i2c_write(uint8_t reg, uint8_t *data, size_t len);

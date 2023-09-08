@@ -17,7 +17,6 @@
 #define ADC_CTRLB_RESSEL_10BIT_Val  0x02 // default by Arduino
 #define ADC_CTRLB_RESSEL_12BIT_Val  0x00
 #endif
-#define ADC_CTRLB_RESSEL_16BIT_Val  0x01 // used for averaging mode output
 
 #define ADC_PIN_TEMP                0x18 // positive mux, pg 870
 #define ADC_PIN_BANDGAP             0x19

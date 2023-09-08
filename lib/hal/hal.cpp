@@ -3,7 +3,6 @@
 
 #include "hal_adc.h"
 #include "hal_can.h"
-#include "hal_lcd.h"
 
 #include "hal_outputs.h"
 #include "hal_imu.h"
@@ -32,37 +31,31 @@ void hal_init(void) {
     
     digitalWrite(PIN_ADC_CS, HIGH);
     digitalWrite(PIN_CAN_CS, HIGH);
-    digitalWrite(PIN_LCD_CS, HIGH);
+    // digitalWrite(PIN_LCD_CS, HIGH);
 
     digitalWrite(PIN_ADC_SYNC_RESET, HIGH);
-    digitalWrite(PIN_LCD_RESET, HIGH);
 
     pinMode(PIN_ADC_CS, OUTPUT);
     pinMode(PIN_CAN_CS, OUTPUT);
-    pinMode(PIN_LCD_CS, OUTPUT);
+    // pinMode(PIN_LCD_CS, OUTPUT);
     
     pinMode(PIN_ADC_SYNC_RESET, OUTPUT);
-    pinMode(PIN_LCD_RESET, OUTPUT);
-
 
     pinMode(PIN_ADC_DRDY, INPUT);
     pinMode(PIN_IMU_INT, INPUT);
     pinMode(PIN_CAN_INT, INPUT);
-    pinMode(PIN_LCD_INT, INPUT);
     pinMode(PIN_PARK, INPUT);
     pinMode(PIN_KICKSTAND, INPUT);
 
     Serial.begin(115200);
 
+    LCD_SERIAL.begin(1000000UL);        // LCD board serial communication, 1Mbaud
+
     // while(!Serial);
-
-    hal_can_init();
-
-    hal_lcd_init();;
 
     hal_outputs_init();
 
-    hal_imu_init();
+    // hal_imu_init();
 
     // hal_led_chain_init();
 

@@ -31,13 +31,6 @@ void canbus::update(void) {
 
 void canbus::send_output_state_change(uint16_t states) {
 
-    // struct can_frame frame = {
-    //     .id = MM_CAN_ID_HUB_OUTPUT_STATES,
-	// 	// .rtr = CAN_DATAFRAME,
-	// 	// .id_type = CAN_STANDARD_IDENTIFIER,
-    //     .dlc = 2,
-    // };
-
 	hal_can_send(MM_CAN_ID_HUB_OUTPUT_STATES, (uint8_t *)&states, sizeof(states));
 }
 

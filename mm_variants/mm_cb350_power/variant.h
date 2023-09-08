@@ -99,49 +99,48 @@ static const uint8_t A4  = PIN_A4;
 /*
  * Serial interfaces
  */
-// Serial (BLE)
-#define PIN_SERIAL_TX       (18ul)
-#define PIN_SERIAL_RX       (19ul)
-#define PAD_SERIAL_TX       (UART_TX_PAD_0)
-#define PAD_SERIAL_RX       (SERCOM_RX_PAD_1)
+// BT840XE (BLE) - Serial1
+#define PIN_SERIAL1_RX        (19ul)
+#define PIN_SERIAL1_TX        (18ul)
+#define PAD_SERIAL1_RX        (SERCOM_RX_PAD_1)
+#define PAD_SERIAL1_TX        (UART_TX_PAD_0)
+#define BLE_SERIAL            Serial1
 
+
+// Teensy/LCD Serial2
+#define PIN_SERIAL2_RX        (28ul)
+#define PIN_SERIAL2_TX        (29ul)
+#define PAD_SERIAL2_RX        (SERCOM_RX_PAD_0)
+#define PAD_SERIAL2_TX        (UART_TX_PAD_2)
+#define PIN_LCD_IO1           (10u)
+#define PIN_LCD_IO2           (11u)
+#define LCD_SERIAL            Serial2
 
 /*
  * SPI Interfaces
  */
-#define SPI_INTERFACES_COUNT 3
+#define SPI_INTERFACES_COUNT 2
 
-// SPI - CAN (MCP2515  - CAN Controller)
-#define PIN_SPI_MISO         (25u)
-#define PIN_SPI_MOSI         (26u)
-#define PIN_SPI_SCK          (27u)
+// SPI1 - CAN (MCP2515  - CAN Controller)
+#define PIN_SPI_MISO        (25u)
+#define PIN_SPI_MOSI        (26u)
+#define PIN_SPI_SCK         (27u)
 #define PIN_CAN_CS           (5u)
 #define PIN_CAN_INT          (4u)
-#define PERIPH_SPI           sercom4
-#define PAD_SPI_TX           SPI_PAD_2_SCK_3
-#define PAD_SPI_RX           SERCOM_RX_PAD_1
-
-// SPI1 - LCD (EVE4 - Graphics Controller)
-#define PIN_SPI1_MISO         (29u)
-#define PIN_SPI1_MOSI         (28u)
-#define PIN_SPI1_SCK          (30u)
-#define PIN_LCD_CS            (9u)
-#define PIN_LCD_INT           (10u)
-#define PIN_LCD_RESET         (11u)
-#define PERIPH_SPI1           sercom3
-#define PAD_SPI1_TX           SPI_PAD_0_SCK_3
-#define PAD_SPI1_RX           SERCOM_RX_PAD_2
+#define PERIPH_SPI          sercom4
+#define PAD_SPI_TX          SPI_PAD_2_SCK_3
+#define PAD_SPI_RX          SERCOM_RX_PAD_1
 
 // SPI2 - ADC
-#define PIN_SPI2_MISO        (21u)
-#define PIN_SPI2_MOSI        (20u)
-#define PIN_SPI2_SCK         (22u)
+#define PIN_SPI1_MISO        (21u)
+#define PIN_SPI1_MOSI        (20u)
+#define PIN_SPI1_SCK         (22u)
 #define PIN_ADC_CS           (6u)
 #define PIN_ADC_SYNC_RESET   (12u)
 #define PIN_ADC_DRDY         (2u)
-#define PERIPH_SPI2          sercom0
-#define PAD_SPI2_TX          SPI_PAD_0_SCK_3
-#define PAD_SPI2_RX          SERCOM_RX_PAD_1
+#define PERIPH_SPI1          sercom0
+#define PAD_SPI1_TX          SPI_PAD_0_SCK_3
+#define PAD_SPI1_RX          SERCOM_RX_PAD_1
 
 // static const uint8_t SS	  = PIN_A2 ;	// SERCOM4 last PAD is present on A2 but HW SS isn't used. Set here only for reference.
 // static const uint8_t MOSI = PIN_SPI_MOSI ;
@@ -216,6 +215,7 @@ extern SERCOM sercom4;
 extern SERCOM sercom5;
 
 extern Uart Serial1;
+extern Uart Serial2;
 
 #endif
 
@@ -236,18 +236,11 @@ extern Uart Serial1;
 //                            pins are NOT connected to anything by default.
 #define SERIAL_PORT_USBVIRTUAL      Serial
 #define SERIAL_PORT_MONITOR         Serial
-// Serial has no physical pins broken out, so it's not listed as HARDWARE port
-#define SERIAL_PORT_HARDWARE        Serial1
-#define SERIAL_PORT_HARDWARE_OPEN   Serial1
-
-#define SERIAL_PORT_BLE             Serial1
 
 #define CAN_SPI                     SPI
-#define LCD_SPI                     SPI1
-#define ADC_SPI                     SPI2
+#define ADC_SPI                     SPI1
 
 #define IMU_WIRE                    Wire
 #define OUTPUTS_WIRE                Wire1
 
 #endif /* _VARIANT_MM_CB350_POWER_ */
-

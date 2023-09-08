@@ -4,7 +4,6 @@
 #include "moto_can.h"
 #include "moto.h"
 #include "imu.h"
-#include "GUI.h"
 #include "starterMotor.h"
 #include "power.h"
 #include "hal.h"
@@ -34,8 +33,6 @@ void motorcycle::init() {
 
     pwr_output.init();
 
-    outputClass::init();
-
     // Flash the local LED to show that the program is running
     // Reset auxiillary power... need to understand why this fucks with the LIN
     outputs[PWM_CH_LED_LOCAL].set(true);
@@ -48,8 +45,6 @@ void motorcycle::init() {
     outputs[PWM_CH_LED_LOCAL].set(true);
     delay(100);
     outputs[PWM_CH_LED_LOCAL].set(false);
-
-
 
     setMode(MOTO_MODE_STARTUP);
 }
@@ -92,7 +87,6 @@ void motorcycle::setMode(moto_mode_t mode) {
         case MOTO_MODE_PARKED:
         case MOTO_MODE_GARAGE:
 
-            gui.disable();
             blinkers.disable();
 
             // delay here waiting for tasks to exit...
@@ -121,8 +115,6 @@ void motorcycle::setMode(moto_mode_t mode) {
             pwr_output.set(POWER_OUTPUT_AUXILLARY, true);
             pwr_output.set(POWER_OUTPUT_HEADLIGHT, true);
 
-
-            gui.enable();
             blinkers.enable();
             // exit sleep mode for ESP32 and shutdown peripherals
             // power.full();
@@ -151,7 +143,6 @@ void motorcycle::startupModeUpdate(void) {
     telem.enable();
     imu.enable();
     moto_can.enable();
-    gui.enable();
     
     ignitionModeUpdate();       // temporary until makes more sense later
 }

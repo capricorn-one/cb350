@@ -1,4 +1,5 @@
 #include "ads131m0x.h"
+#include <string.h>
 
 // #include <stdio.h>
 
@@ -20,66 +21,75 @@ uint16_t    calculateCRC(const uint8_t dataBytes[], uint8_t numberBytes, uint16_
 static uint16_t transfer_data(ads131m0x_hal_t *hal, uint16_t cmd, uint16_t data);
 
 
-void ads131m0x_init(ads131m0x_hal_t *hal) {
+uint16_t ads131m0x_init(ads131m0x_hal_t *hal) {
     
-    for(uint8_t i=0; i<ADS131M0X_CHANNEL_COUNT; i++) {
-		hal->conversion[i].raw = 0;
-	}
+	uint16_t response;
+    // for(uint8_t i=0; i<ADS131M0X_CHANNEL_COUNT; i++) {
+	// 	hal->conversion[i].raw = 0;
+	// }
 	
     ///* (OPTIONAL) Toggle nRESET pin to ensure default register settings. */
     ///* NOTE: This also ensures that the device registers are unlocked.	 */
-    //hal->toggleRESET();
-	//
-	//hal->delay_ms(5);
+	ads131m0x_reset(hal);
 
     /* (OPTIONAL) Validate first response word when beginning SPI communication: (0xFF20 | CHANCNT) */
     // uint16_t response = sendCommand(OPCODE_NULL);
-    //sendCommand(OPCODE_NULL);
+    response = sendCommand(hal, OPCODE_NULL);
 
 	writeSingleRegister(hal, CLOCK_ADDRESS, hal->clock);
 
 	writeSingleRegister(hal, CFG_ADDRESS, hal->config);
 	
 	ads131m0x_channel_pga_update(hal);
-	 
-	sendCommand(hal, OPCODE_STANDBY);
 
+	ads131m0x_resync(hal);
+
+	sendCommand(hal, OPCODE_NULL);	// clear FIFO
+
+	
+	return response;
 }
 
 void ads131m0x_reset(ads131m0x_hal_t *hal) {
     hal->set_syncResetPin(false);
     hal->delay_ms(3);
     hal->set_syncResetPin(true);
-    hal->delay_ms(3);
+    hal->delay_ms(5);
 }
 
-void ads131m0x_trigger_conversion(ads131m0x_hal_t *hal) {
+void ads131m0x_resync(ads131m0x_hal_t *hal) {
     hal->set_syncResetPin(false);
     hal->delay_us(3);
     hal->set_syncResetPin(true);
 }
 
-void ads131m0x_get_new_conversion(ads131m0x_hal_t *hal) {
-	
-	while(!hal->dataReady());
-	
-	// watchdog kick?
+// Wait for new data to come in (assumes interrupt triggered DMA transactions)
+uint16_t ads131m0x_wait_for_new_conversion(ads131m0x_hal_t *hal, uint32_t timeout_ms) {
 
-	// read new data
-	sendCommand(hal, OPCODE_NULL);
+	uint32_t wait_start_time_ms = hal->millis();
 
-}
+	// while((hal->transfer_buffer[1] != 0x00) && ((hal->millis() - wait_start_time_ms) < timeout_ms)) {
 
-void ads131m0x_parse_conversion(ads131m0x_hal_t *hal) {
-	
-	for(uint8_t i=0; i<ADS131M0X_CHANNEL_COUNT; i++) {
-		
-		hal->conversion[i].b[3] = hal->transfer_buffer[3*(i+1) + 0];
-		hal->conversion[i].b[2] = hal->transfer_buffer[3*(i+1) + 1];
-		hal->conversion[i].b[1] = hal->transfer_buffer[3*(i+1) + 2];
-		
-		hal->conversion[i].raw = hal->conversion[i].raw>>8;		// Right-shift of signed data maintains signed bit
+	// }
+	while((hal->dataReady() == false) && ((hal->millis() - wait_start_time_ms) < timeout_ms)) {
+
 	}
+
+	if(hal->millis() - wait_start_time_ms >= timeout_ms) {
+		return 0xFFFF;
+	}
+	else {
+		for(uint8_t i=0; i<ADS131M0X_CHANNEL_COUNT; i++) {
+		
+			hal->conversion[i].b[3] = hal->transfer_buffer[3*(i+1) + 0];
+			hal->conversion[i].b[2] = hal->transfer_buffer[3*(i+1) + 1];
+			hal->conversion[i].b[1] = hal->transfer_buffer[3*(i+1) + 2];
+			
+			hal->conversion[i].raw = hal->conversion[i].raw>>8;		// Right-shift of signed data maintains signed bit
+		}
+	}
+
+	return hal->transfer_buffer[0]<<8 | hal->transfer_buffer[1];
 }
 
 void ads131m0x_enable_channels(ads131m0x_hal_t *hal, uint8_t enabled_channel_bitmap) {
@@ -122,7 +132,7 @@ void ads131m0x_disable_external_reference(ads131m0x_hal_t *hal) {
 
 void ads131m0x_channel_pga_update(ads131m0x_hal_t *hal) {
 
-	uint16_t gain_regs[0];
+	uint16_t gain_regs[2];
 
 	gain_regs[0] =  hal->gain[0] | 
 					(hal->gain[1]<<4) | 
@@ -147,8 +157,12 @@ uint16_t ads131m0x_read_status(ads131m0x_hal_t *hal) {
 	return readSingleRegister(hal, STATUS_ADDRESS);
 }
 
-void ads131m0x_set_power_mode(ads131m0x_hal_t *hal) {
+void ads131m0x_standby(ads131m0x_hal_t *hal) {
+	sendCommand(hal, OPCODE_STANDBY);
+}
 
+void ads131m0x_wakeup(ads131m0x_hal_t *hal) {
+	sendCommand(hal, OPCODE_WAKEUP);
 }
 
 static uint16_t transfer_data(ads131m0x_hal_t *hal, uint16_t cmd, uint16_t data) {
@@ -160,11 +174,11 @@ static uint16_t transfer_data(ads131m0x_hal_t *hal, uint16_t cmd, uint16_t data)
 	hal->transfer_buffer[3] = data>>8;
 	hal->transfer_buffer[4] = data&0xFF;
 	hal->transfer_buffer[5] = 0x00;
-	
-	hal->transferFrame();
-	
-	
 
+	memset((void *)&hal->transfer_buffer[6], 0, 24);
+	
+	hal->transferFrame(FRAME_LENGTH);
+	
 	//rx_buffer[27...29] = CRC
 
 	return ((hal->transfer_buffer[0]<<8) | (hal->transfer_buffer[1]&0xFF));

@@ -28,8 +28,6 @@ class outputClass {
 
 public:
 
-    static void init(void);
-
     outputClass(uint8_t channel_num) { channel = channel_num; }
 
     void set(bool newState);
@@ -45,9 +43,6 @@ private:
     bool state;
 
     uint16_t pwm;
-
-    static pca9685 output_controller;
-    static pca9685_hal_t pca9685_hal;
 
 };
 
