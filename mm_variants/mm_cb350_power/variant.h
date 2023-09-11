@@ -80,11 +80,11 @@ extern "C"
  * Analog pins
  */
 
-#define PIN_A0               (0ul)
-#define PIN_A1               (1ul)
-#define PIN_A2               (2ul)
-#define PIN_A3               (3ul)
-#define PIN_A4               (4ul)
+#define PIN_A0               (13u)
+#define PIN_A1               (14u)
+#define PIN_A2               (15u)
+#define PIN_A3               (16u)
+#define PIN_A4               (17u)
 
 #define PIN_DAC0             (0ul)
 
@@ -94,7 +94,7 @@ static const uint8_t A2  = PIN_A2;
 static const uint8_t A3  = PIN_A3;
 static const uint8_t A4  = PIN_A4;
 
-#define ADC_RESOLUTION		14
+#define ADC_RESOLUTION		15
 
 /*
  * Serial interfaces
@@ -152,21 +152,18 @@ static const uint8_t A4  = PIN_A4;
  */
 #define WIRE_INTERFACES_COUNT 2
 
-// Wire1 - IMU (MPU9250 - Accelerometer/Gyroscope)
+// Wire - IMU (MPU9250 - Accelerometer/Gyroscope)
 #define PIN_WIRE_SDA        (23u)
 #define PIN_WIRE_SCL        (24u)
 #define PIN_IMU_INT         (3u)
 #define PERIPH_WIRE         sercom2
 #define WIRE_IT_HANDLER     SERCOM2_Handler
 
-// Wire - PCA9685 (PWM Controller)
+// Wire1 - PCA9685 (PWM Controller)
 #define PIN_WIRE1_SDA       (31u)
 #define PIN_WIRE1_SCL       (32u)
 #define PERIPH_WIRE1        sercom5
 #define WIRE1_IT_HANDLER    SERCOM5_Handler
-
-static const uint8_t SDA = PIN_WIRE_SDA;
-static const uint8_t SCL = PIN_WIRE_SCL;
 
 /*
  * USB
@@ -189,8 +186,8 @@ static const uint8_t SCL = PIN_WIRE_SCL;
 #define ADC_IS3_CURRENT           (6u)
 #define ADC_IS4_CURRENT           (7u)
 
-#define ADC_SAM_BATTERY_POS       (A3)
 #define ADC_SAM_BATTERY_NEG       (A2)
+#define ADC_SAM_BATTERY_POS       (A3)
 #define ADC_SAM_STARTER_CURRENT   (A4)
 
 #ifdef __cplusplus
@@ -242,5 +239,8 @@ extern Uart Serial2;
 
 #define IMU_WIRE                    Wire
 #define OUTPUTS_WIRE                Wire1
+
+#define Serial                      SerialUSB
+
 
 #endif /* _VARIANT_MM_CB350_POWER_ */

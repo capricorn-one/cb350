@@ -3,9 +3,9 @@
     "arduino": {
         "ldscript": "flash_with_bootloader.ld"
     },
-    "core": "adafruit",
+    "core": "arduino",
     "cpu": "cortex-m0plus",
-    "extra_flags": "-D__SAMD21G18A__ -DCRYSTALLESS -DARM_MATH_CM0PLUS -DARDUINO_SAMD_ZERO",
+    "extra_flags": "-D__SAMD21G18A__ -DCRYSTALLESS -DARM_MATH_CM0PLUS",
     "f_cpu": "48000000L",
     "hwids": [
       [

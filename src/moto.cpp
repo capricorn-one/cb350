@@ -7,7 +7,8 @@
 #include "starterMotor.h"
 #include "power.h"
 #include "hal.h"
-#include "outputs.h"
+#include "hal_outputs.h"
+#include "ble.h"
 
 // static void accelerometer_int1_callback(uint8_t state) { }
 // static void accelerometer_int2_callback(uint8_t state) { }
@@ -29,41 +30,60 @@ static void starterPushButtonCallback(moto_switch_trigger_t);
 static void rightSignalPushButtonCallback(moto_switch_trigger_t);
 // static void frontBrakePushButtonCallback(moto_switch_trigger_t);
 
-void motorcycle::init() {
-
-    pwr_output.init();
+bool motorcycle::begin(void) {
 
     // Flash the local LED to show that the program is running
-    // Reset auxiillary power... need to understand why this fucks with the LIN
-    outputs[PWM_CH_LED_LOCAL].set(true);
-    pwr_output.set(POWER_OUTPUT_AUXILLARY, false);
+    // Reset auxiillary power
+    hal_outputs_set_state(PWM_CH_LED_LOCAL, true);
+    pwr_output[POWER_OUTPUT_AUXILLARY].set(false);
     delay(500);
-    outputs[PWM_CH_LED_LOCAL].set(false);
-    pwr_output.set(POWER_OUTPUT_AUXILLARY, true);
+    hal_outputs_set_state(PWM_CH_LED_LOCAL, false);
+    pwr_output[POWER_OUTPUT_AUXILLARY].set(true);
     delay(250);
 
-    outputs[PWM_CH_LED_LOCAL].set(true);
-    delay(100);
-    outputs[PWM_CH_LED_LOCAL].set(false);
+    hal_outputs_set_state(PWM_CH_LED_LOCAL, true);
+    // delay(100);
+    // hal_outputs_set_state(PWM_CH_LED_LOCAL, false);
 
-    setMode(MOTO_MODE_STARTUP);
+    pinMode(PIN_PARK, INPUT);           // some kind of interrupt callback here? or just check in the main loop?
+    
+    pinMode(PIN_KICKSTAND, INPUT);      // some kind of interrupt callback here? or just check in the main loop?
+
+    return true;
+
 }
 
+bool motorcycle::start(void) {
+    
+    telem.enable();
+    // imu.enable();
+    moto_can.enable();
+    // ble.enable();
+
+    blinkers.setMode(TURN_SIGNAL_MODE_HAZARD);
+    
+    setMode(MOTO_MODE_IGNITION);
+
+    return true;
+}
 
 // main loop for reading switches and LIFE OR DEATH critical functions
-void motorcycle::update() {
+bool motorcycle::update(void) {
 
     switch(moto_mode) {
 
-        case MOTO_MODE_STARTUP:             startupModeUpdate();            break;
         case MOTO_MODE_OFF:                 offModeUpdate();                break;
         case MOTO_MODE_IGNITION:            ignitionModeUpdate();           break;
         case MOTO_MODE_PARKING_LIGHTS:      parkingLightsModeUpdate();      break;
         case MOTO_MODE_DRIVING:             drivingModeUpdate();            break;
         case MOTO_MODE_PARKED:              parkedModeUpdate();             break;
         case MOTO_MODE_GARAGE:              garageModeUpdate();             break;
+
+        default:
+            break;
     }
 
+    return true;
 }
 
 void motorcycle::setMode(moto_mode_t mode) {
@@ -74,11 +94,11 @@ void motorcycle::setMode(moto_mode_t mode) {
 
         // Called only once on startup of device, mainly used for debugging
         case MOTO_MODE_STARTUP:
-
+            
             /******* START MOTO TASKS ******/
             moto.enable();
-            // gui.start(GUI_TASK_DEFAULT_INTERVAL_MS);
             // blinkers.start(BLINKERS_TASK_DEFAULT_INTERVAL_MS);
+
             break;
         
         // Called when bike is put in shutdown mode (key is in off position)
@@ -91,17 +111,17 @@ void motorcycle::setMode(moto_mode_t mode) {
 
             // delay here waiting for tasks to exit...
             // vTaskDelay(100);
-            pwr_output.set(POWER_OUTPUT_IGNITION, false);
-            pwr_output.set(POWER_OUTPUT_SIGNAL_LEFT, false);
-            pwr_output.set(POWER_OUTPUT_SIGNAL_RIGHT, false);
-            pwr_output.set(POWER_OUTPUT_HEADLIGHT, false);
-            pwr_output.set(POWER_OUTPUT_BRAKE_LIGHT, false);
-            pwr_output.set(POWER_OUTPUT_HIGHBEAM, false);
-            pwr_output.set(POWER_OUTPUT_TAIL_LIGHT, false);
-            pwr_output.set(POWER_OUTPUT_HORN, false);
-            pwr_output.set(POWER_OUTPUT_AUXILLARY, false);
-            pwr_output.set(POWER_OUTPUT_STARTER, false);
-            pwr_output.set(POWER_OUTPUT_COMPRESSOR, false);
+            pwr_output[POWER_OUTPUT_IGNITION].set(false);
+            pwr_output[POWER_OUTPUT_SIGNAL_LEFT].set(false);
+            pwr_output[POWER_OUTPUT_SIGNAL_RIGHT].set(false);
+            pwr_output[POWER_OUTPUT_HEADLIGHT].set(false);
+            pwr_output[POWER_OUTPUT_BRAKE_LIGHT].set(false);
+            pwr_output[POWER_OUTPUT_HIGHBEAM].set(false);
+            pwr_output[POWER_OUTPUT_TAIL_LIGHT].set(false);
+            pwr_output[POWER_OUTPUT_HORN].set(false);
+            pwr_output[POWER_OUTPUT_AUXILLARY].set(false);
+            pwr_output[POWER_OUTPUT_STARTER].set(false);
+            pwr_output[POWER_OUTPUT_COMPRESSOR].set(false);
 
             // enter sleep mode for ESP32 and shutdown peripherals
             // power.sleep();
@@ -109,42 +129,38 @@ void motorcycle::setMode(moto_mode_t mode) {
 
         // Called when bike ignition is turned on (key position only, not actual ignition)
         case MOTO_MODE_IGNITION:
-
-            pwr_output.set(POWER_OUTPUT_IGNITION, true);
-            pwr_output.set(POWER_OUTPUT_TAIL_LIGHT, true);
-            pwr_output.set(POWER_OUTPUT_AUXILLARY, true);
-            pwr_output.set(POWER_OUTPUT_HEADLIGHT, true);
-
-            blinkers.enable();
+        
+            pwr_output[POWER_OUTPUT_IGNITION].set(true);
+            pwr_output[POWER_OUTPUT_TAIL_LIGHT].set(true);
+            pwr_output[POWER_OUTPUT_AUXILLARY].set(true);
+            pwr_output[POWER_OUTPUT_HEADLIGHT].set(true);
+            
+            // blinkers.enable();   ???
             // exit sleep mode for ESP32 and shutdown peripherals
             // power.full();
             break;
         
         case MOTO_MODE_PARKING_LIGHTS:
 
-            pwr_output.set(POWER_OUTPUT_IGNITION, false);
-            pwr_output.set(POWER_OUTPUT_SIGNAL_LEFT, false);
-            pwr_output.set(POWER_OUTPUT_SIGNAL_RIGHT, false);
-            pwr_output.set(POWER_OUTPUT_BRAKE_LIGHT, false);
-            pwr_output.set(POWER_OUTPUT_HIGHBEAM, false);
-            pwr_output.set(POWER_OUTPUT_TAIL_LIGHT, false);
-            pwr_output.set(POWER_OUTPUT_HORN, false);
-            pwr_output.set(POWER_OUTPUT_STARTER, false);
-            pwr_output.set(POWER_OUTPUT_AUXILLARY, false);
-            pwr_output.set(POWER_OUTPUT_HEADLIGHT, true);
+            pwr_output[POWER_OUTPUT_IGNITION].set(false);
+            pwr_output[POWER_OUTPUT_SIGNAL_LEFT].set(false);
+            pwr_output[POWER_OUTPUT_SIGNAL_RIGHT].set(false);
+            pwr_output[POWER_OUTPUT_BRAKE_LIGHT].set(false);
+            pwr_output[POWER_OUTPUT_HIGHBEAM].set(false);
+            pwr_output[POWER_OUTPUT_TAIL_LIGHT].set(false);
+            pwr_output[POWER_OUTPUT_HORN].set(false);
+            pwr_output[POWER_OUTPUT_AUXILLARY].set(false);
+            pwr_output[POWER_OUTPUT_STARTER].set(false);
+            pwr_output[POWER_OUTPUT_COMPRESSOR].set(false);
+
+            pwr_output[POWER_OUTPUT_HEADLIGHT].set(true);
+
 
             break;
-
+        
+        default:
+            break;
     }
-}
-
-void motorcycle::startupModeUpdate(void) {
-
-    telem.enable();
-    imu.enable();
-    moto_can.enable();
-    
-    ignitionModeUpdate();       // temporary until makes more sense later
 }
 
 void motorcycle::offModeUpdate(void) {
@@ -153,17 +169,7 @@ void motorcycle::offModeUpdate(void) {
 
 void motorcycle::ignitionModeUpdate(void) {
 
-    // static uint8_t msg = 0;
-
-    // 4 messages get called at every update (~20ms intevals)
-    // if(msg == 0) {
-    //     gearIndicatorQuery();
-    // }
-    // else {
-    //     handleBarQuery();
-    // }
-    // if(++msg == 4)
-    //     msg = 0;
+    // LOG_INF("IGNITION MODE UPDATE");
 }
 
 void motorcycle::parkingLightsModeUpdate(void) {
@@ -186,12 +192,13 @@ void motorcycle::setIgnitionState(bool state) {
 
     // Probably a bunch of error checking/safety shit here
     
-    pwr_output.set(POWER_OUTPUT_IGNITION, state);
+    pwr_output[POWER_OUTPUT_IGNITION].set(state);
+
     LOG_INF("%s - Ignition Set to %d", tag(), state);
 }
 
 void motorcycle::setAuxillaryPowerState(bool state) {
-    pwr_output.set(POWER_OUTPUT_AUXILLARY, state);
+    pwr_output[POWER_OUTPUT_AUXILLARY].set(state);
     LOG_INF("%s - AUX Power Set to %d", tag(), state);
 }
 
@@ -250,7 +257,7 @@ void motorcycle::vfdTelemetryCallbackHandler(vfd_telem_t *telem) {
 }
 
 void motorcycle::ignitionEnable(bool state) {
-    pwr_output.set(POWER_OUTPUT_IGNITION, state);
+    pwr_output[POWER_OUTPUT_IGNITION].set(state);
 }
 
 motorcycle moto("moto");
@@ -267,13 +274,13 @@ void highBeamPushButtonCallback(moto_switch_trigger_t trig) {
     LOG_INF("HEADLIGHT CALLBACK WITH TRIG %u", trig);
     if(prev_trig == MOTO_SWITCH_TRIGGER_HOLD) {
         if(trig == MOTO_SWITCH_TRIGGER_PRESS)
-            pwr_output.set(POWER_OUTPUT_HIGHBEAM, false);
+            pwr_output[POWER_OUTPUT_HIGHBEAM].set(false);
     }
     else {
         if(trig == MOTO_SWITCH_TRIGGER_PRESS)
-            pwr_output.set(POWER_OUTPUT_HIGHBEAM, true);
+            pwr_output[POWER_OUTPUT_HIGHBEAM].set(true);
         else if(trig == MOTO_SWITCH_TRIGGER_RELEASE)
-            pwr_output.set(POWER_OUTPUT_HIGHBEAM, false);
+            pwr_output[POWER_OUTPUT_HIGHBEAM].set(false);
     }
     prev_trig = trig;
 }
@@ -281,8 +288,8 @@ void highBeamPushButtonCallback(moto_switch_trigger_t trig) {
 void hornPushButtonCallback(moto_switch_trigger_t trig) {
     LOG_INF("HORN CALLBACK WITH TRIG %u", trig);
     switch(trig) {
-        case MOTO_SWITCH_TRIGGER_PRESS:     pwr_output.set(POWER_OUTPUT_HORN, true);    break;
-        case MOTO_SWITCH_TRIGGER_RELEASE:   pwr_output.set(POWER_OUTPUT_HORN, false);   break;
+        case MOTO_SWITCH_TRIGGER_PRESS:     pwr_output[POWER_OUTPUT_HORN].set(true);    break;
+        case MOTO_SWITCH_TRIGGER_RELEASE:   pwr_output[POWER_OUTPUT_HORN].set(false);   break;
         default:        break;
     }
 }
@@ -330,7 +337,7 @@ void starterPushButtonCallback(moto_switch_trigger_t trig) {
     }
     else {
         // If ignition is enabled
-        if(pwr_output.get(POWER_OUTPUT_IGNITION)) {
+        if(pwr_output[POWER_OUTPUT_IGNITION].isEnabled()) {
 
             if( trig >= MOTO_SWITCH_TRIGGER_PRESS ) {
                 starter.enable();

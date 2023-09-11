@@ -1,8 +1,7 @@
 #include "power.h"
-#include "outputs.h"
 #include "hal.h"
-
-mm_power::mm_power(void) {}
+#include "hal_outputs.h"
+#include "moto_can.h"
 
 // Definition for pinout on power board. Power Output pins are in the back row.
 // Pin 1 is the furthest to the right when looking at the board from the front.
@@ -24,34 +23,79 @@ mm_power::mm_power(void) {}
 //  10              Brake Light                 4-1 (BRAKE)
 //  11              Starter                 N/A
 
-void mm_power::init(void) {
+uint16_t mm_power::output_states = 0;
+uint16_t mm_power::last_output_states = 0;
 
-    // link power outputs to appropriate pwm channel on controller
-    power_outputs[POWER_OUTPUT_AUXILLARY].output = &outputs[PWM_CH_0_0];
-    power_outputs[POWER_OUTPUT_HORN].output = &outputs[PWM_CH_0_1];
-    power_outputs[POWER_OUTPUT_IGNITION].output = &outputs[PWM_CH_1_0];
-    power_outputs[POWER_OUTPUT_COMPRESSOR].output = &outputs[PWM_CH_1_1];
-    power_outputs[POWER_OUTPUT_HEADLIGHT].output = &outputs[PWM_CH_2_0];
-    power_outputs[POWER_OUTPUT_SIGNAL_LEFT].output = &outputs[PWM_CH_2_1];
-    power_outputs[POWER_OUTPUT_TAIL_LIGHT].output = &outputs[PWM_CH_3_0];
-    power_outputs[POWER_OUTPUT_SIGNAL_RIGHT].output = &outputs[PWM_CH_3_1];
-    power_outputs[POWER_OUTPUT_HIGHBEAM].output = &outputs[PWM_CH_4_0];
-    power_outputs[POWER_OUTPUT_BRAKE_LIGHT].output = &outputs[PWM_CH_BRAKE];
-    power_outputs[POWER_OUTPUT_STARTER].output = &outputs[PWM_CH_STARTER];
-
+mm_power::mm_power(uint8_t pwm_channel, uint8_t pwr_output_num) {
+    channel = pwm_channel;
+    output_num = pwr_output_num;
+    enabled = false;
 }
 
-void mm_power::set(power_output_enum_t output_num, bool state) {
-    power_outputs[output_num].output->set(state);
+// need to update the 16bit output_states variable with the new state of the output
+// from mm_types
+// typedef enum {
+//     POWER_OUTPUT_IGNITION = 0,
+//     POWER_OUTPUT_SIGNAL_LEFT = 1,
+//     POWER_OUTPUT_SIGNAL_RIGHT = 2,
+//     POWER_OUTPUT_HEADLIGHT = 3,
+//     POWER_OUTPUT_BRAKE_LIGHT = 4,
+//     POWER_OUTPUT_HIGHBEAM = 5,
+//     POWER_OUTPUT_TAIL_LIGHT = 6,
+//     POWER_OUTPUT_HORN = 7,
+//     POWER_OUTPUT_AUXILLARY = 8,
+//     POWER_OUTPUT_STARTER = 9,
+//     POWER_OUTPUT_COMPRESSOR = 10,
+// 	POWER_OUTPUT_NUM = 11
+// } power_output_enum_t;
+
+void mm_power::set(bool state) {
+    set(state, true);
 }
 
-bool mm_power::get(power_output_enum_t output_num) {
-    return power_outputs[output_num].output->get();
+void mm_power::set(bool state, bool immediate) {
+
+    if(state == enabled)
+        return;
+
+    if(state)
+        output_states |= (1 << output_num);
+    else
+        output_states &= ~(1 << output_num);
+    
+    if(immediate) {
+        moto_can.send_output_state_change(output_states);
+        last_output_states = output_states;
+    }
+
+    hal_outputs_set_state((output_channel_enum_t)channel, enabled, immediate);
+
+    enabled = state;
 }
 
-void mm_power::set_duty_cycle(power_output_enum_t output_num, float duty_cycle) {
-    power_outputs[output_num].output->set_duty_cycle(duty_cycle);
+void mm_power::set_duty_cycle(float duty_cycle) {
+    hal_outputs_set_duty_cycle((output_channel_enum_t)channel, duty_cycle);
 }
 
+void mm_power::update_all(void) {
+    if(output_states != last_output_states) {
+        moto_can.send_output_state_change(output_states);
+        last_output_states = output_states;
+        delay(24);  // this sucks dickkkkkk
+        hal_outputs_update_all();
+    }
+}
 
-mm_power pwr_output;
+mm_power pwr_output[POWER_OUTPUT_NUM] = {
+    mm_power(PWM_CH_1_0, POWER_OUTPUT_IGNITION),            // 0 Igntion
+    mm_power(PWM_CH_2_1, POWER_OUTPUT_SIGNAL_LEFT),         // 1 Signal Left
+    mm_power(PWM_CH_3_1, POWER_OUTPUT_SIGNAL_RIGHT),        // 2 Signal Right
+    mm_power(PWM_CH_2_0, POWER_OUTPUT_HEADLIGHT),           // 3 Headlight
+    mm_power(PWM_CH_BRAKE, POWER_OUTPUT_BRAKE_LIGHT),       // 4 Brake Light
+    mm_power(PWM_CH_4_0, POWER_OUTPUT_HIGHBEAM),            // 5 High Beam
+    mm_power(PWM_CH_3_0, POWER_OUTPUT_TAIL_LIGHT),          // 6 Tail Light
+    mm_power(PWM_CH_0_1, POWER_OUTPUT_HORN),                // 7 Horn
+    mm_power(PWM_CH_0_0, POWER_OUTPUT_AUXILLARY),           // 8 Auxilllary
+    mm_power(PWM_CH_STARTER, POWER_OUTPUT_STARTER),         // 9 Starter
+    mm_power(PWM_CH_1_1, POWER_OUTPUT_COMPRESSOR)           // 10 Compressor
+};

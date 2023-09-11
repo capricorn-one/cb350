@@ -43,31 +43,37 @@ void pca9685::begin(pca9685_hal_t *pca9685_hal, uint8_t address) {
 
     i2c_addr = 0x40 + address;
 
-    // reset();
+    reset();
 
     // set_pwm_freq(1000);
 
     i2c_write(MODE1_REG, MODE1_AI);
 
     hal->delay_ms(5);
+
+    for(uint8_t i = 0; i < 16; i++) {
+        pwm_counters[i].on = 1;
+        pwm_counters[i].off = 1;
+        enabled[i] = false;
+    }
+
+    set_pwm_counters();
     
+}
+
+uint8_t pca9685::get_reg_value(uint8_t reg) {
+    uint8_t val = 0;
+    i2c_read(reg, &val, 1);
+    return val;
 }
 
 // @brief Reset the PCA9685 as defined by section 7.1.4 of the datasheet, perform a write of the PCA9685_RESET_ADDRESS
 // @param none
 void pca9685::reset(void) {
 
-    
+    uint8_t reset_byte = 0x06;
 
-    // Send a software reset to the PCA9685
-    // i2c_write(dev_i2c.bus, NULL, 0, RESET_ADDRESS);
-    
-    // k_sleep(K_MSEC(1));
-
-    // // Return to normal mode with internal oscillator enabled
-    // i2c_reg_write_byte(dev_i2c.bus, dev_i2c.addr, MODE1_REG, 0x00);
-
-    i2c_write(MODE1_REG, (MODE1_RESTART | MODE1_AI));
+    hal->transfer(RESET_ADDRESS, reset_byte, NULL, 0, false);
 
     hal->delay_ms(5);
 }
@@ -97,16 +103,20 @@ void pca9685::set_duty_cycle(uint8_t ch, float duty_cycle) {
     else if(duty_cycle < 0.00)
         duty_cycle = 0.00;
 
-    set_pwm_counters(ch, 0, duty_cycle * 4095.);
+    set_pwm_counters(ch, 4000 - duty_cycle*4000, 4000);
+}
+
+void pca9685::set_state(uint8_t ch, bool state, bool immediate) {
+    if(state) {
+        set_pwm_counters(ch, 0, 4096, immediate);
+    }
+    else {
+        set_pwm_counters(ch, 4096, 0, immediate);
+    }
 }
 
 void pca9685::set_state(uint8_t ch, bool state) {
-    if(state) {
-        set_pwm_counters(ch, 4096, 0);
-    }
-    else {
-        set_pwm_counters(ch, 0, 4096);
-    }
+    set_state(ch, state, true);
 }
 
 void pca9685::set_pwm_freq(int freq) {
@@ -142,26 +152,23 @@ void pca9685::set_output_mode(bool totempole) {
     i2c_write(MODE2_REG, newmode);
 }
 
-// Assumes LED_ON registers are 0, otherwise will not work
-void pca9685::set_pwm_counters(uint8_t ch, uint16_t duty_cycle) {
-    uint8_t tx_buffer[2];
-
-    tx_buffer[0] = duty_cycle & 0xFF;
-    tx_buffer[1] = duty_cycle >> 8;
+// Assumes LED_OFF registers are 0, otherwise will not work
+void pca9685::set_pwm_counters(uint8_t ch, uint16_t on, uint16_t off, bool immediate) {
     
-    i2c_write(LED0_OFF_L_REG + (ch*4), tx_buffer, 4);
+    pwm_counters[ch].on = on;
+    pwm_counters[ch].off = off;
+
+    if(immediate)
+        i2c_write(LED0_ON_L_REG + (ch*4), (uint8_t *)&pwm_counters[ch].on, 4);
 }
 
 void pca9685::set_pwm_counters(uint8_t ch, uint16_t on, uint16_t off) {
+    set_pwm_counters(ch, on, off, true);
+}
 
-    uint8_t tx_buffer[4];
-
-    tx_buffer[0] = on & 0xFF;
-    tx_buffer[1] = on >> 8;
-    tx_buffer[2] = off & 0xFF;
-    tx_buffer[3] = off >> 8;
-
-    i2c_write(LED0_ON_L_REG + (ch*4), tx_buffer, 4);
+// Assumes litte endian
+void pca9685::set_pwm_counters(void) {
+    i2c_write(LED0_ON_L_REG, (uint8_t *)&pwm_counters->on, sizeof(pwm_counters));
 }
 
 int8_t pca9685::i2c_write(uint8_t reg, uint8_t *data, size_t len) {

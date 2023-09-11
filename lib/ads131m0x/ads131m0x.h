@@ -55,7 +55,7 @@ extern "C" {
     
     void ads131m0x_resync(ads131m0x_hal_t *hal);
 
-	uint16_t ads131m0x_wait_for_new_conversion(ads131m0x_hal_t *hal, uint32_t timeout_ms);
+	uint16_t ads131m0x_process_new_conversion(ads131m0x_hal_t *hal);
 
 
     // Command Functions

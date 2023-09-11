@@ -18,12 +18,11 @@ public:
     ble_class(const char *name) : moto_task(name, 100) {}
     ble_class(const char *name, unsigned long aInterval) : moto_task(name, aInterval) {}
 
-    void init(void);
-
 protected:
 
     bool begin(void);
-    void update(void);
+    bool start(void) { return true; }
+    bool update(void);
     void exit(void) {}
 
 private:

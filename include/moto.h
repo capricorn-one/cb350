@@ -1,7 +1,6 @@
 #ifndef MOTO_H
 #define MOTO_H
 
-#include <stdint.h>
 #include "mm_types.h"
 #include "moto_task.h"
 
@@ -17,8 +16,6 @@ public:
 
     motorcycle(const char *name) : moto_task(name, 20) {}
     motorcycle(const char *name, unsigned long aInterval) : moto_task(name, aInterval) {}
-    
-    void init(void);
 
     uint8_t getGearNumber(void) { return vfd_telem.gear.num; }
 
@@ -78,8 +75,9 @@ public:
 
 protected:
 
-    bool begin(void) { return true; }
-    void update(void);
+    bool begin(void);
+    bool start(void);
+    bool update(void);
     void exit(void) {}
 
 private:

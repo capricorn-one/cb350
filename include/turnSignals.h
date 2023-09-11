@@ -32,7 +32,8 @@ public:
 protected:
 
     bool begin(void) { return true; }
-    void update(void);
+    bool start(void) { return true; }
+    bool update(void);
     void exit(void) {}
 
 private:

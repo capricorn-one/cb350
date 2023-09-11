@@ -2,20 +2,22 @@
 #include "power.h"
 #include "hal.h"
 
-void starterMotor::update(void) {
+bool starterMotor::update(void) {
 
     if( (hal_millis() - enableTimer) > 3000)
         disable();
 
     solenoid_read_current();
 
+    return true;
 }
 
-bool starterMotor::begin() {
+bool starterMotor::start() {
     datapoint_counter = 0;
     // // telem.setMode(TELEM_MODE_AMUX_CH3);         // Only measure voltage during starter motor trigger
     // // telem.setTaskDelay(50);                     // Match local adc reading to starter motor task rate
     enableTimer = hal_millis();
+    
     solenoid_enable(true);
 
     return true;
@@ -28,8 +30,7 @@ void starterMotor::exit(void) {
 }
 
 void starterMotor::solenoid_enable(bool state) {
-
-    pwr_output.set(POWER_OUTPUT_STARTER, state);
+    pwr_output[POWER_OUTPUT_STARTER].set(state);
 }
 
 /***** FROM SOLENOID FIRMWARE *****/

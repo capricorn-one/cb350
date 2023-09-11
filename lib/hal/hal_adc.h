@@ -17,7 +17,7 @@
 
     typedef ads131m0x_conversion_t adc_conversion_t;
 
-    void hal_adc_init(adc_conversion_t * adc_raw_data_ptr);
+    bool hal_adc_init(adc_conversion_t * adc_raw_data_ptr);
 
     void hal_adc_reset(void);
 
@@ -41,6 +41,10 @@
 
     uint8_t hal_adc_channel_gain_get(uint8_t channel);
 
+    int32_t hal_adc_get_raw_conversion(uint8_t channel);
+
+    float hal_adc_get_conversion(uint8_t channel, float conversion_factor);
+
     uint16_t hal_adc_read_id(void);
 
     uint16_t hal_adc_read_status(void);
@@ -48,12 +52,12 @@
     void hal_adc_set_power_mode(adc_power_mode_t power_mode);
 
     /***** local adc functions *****/
-    int16_t hal_adc_sam_differential_read(uint8_t pos_pin, uint8_t neg_pin);
+    float hal_adc_battery_read(void);
 
-    int16_t hal_adc_sam_analog_read(uint8_t pin);
+    float hal_adc_starter_current_read(void);
 
-    int16_t hal_adc_sam_internal_temp_read(void);
+    float hal_adc_vcc_read(void);
 
-    int16_t hal_adc_sam_vcc_read(void);
+    float hal_adc_internal_temp_read(void);
 
 #endif	/* HAL_ADC_H_ */

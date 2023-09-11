@@ -15,7 +15,24 @@
 			"string_view": "cpp",
 			"memory": "cpp",
 			"random": "cpp",
-			"initializer_list": "cpp"
+			"initializer_list": "cpp",
+			"ads131m0x.h": "c",
+			"functional": "cpp",
+			"list": "cpp",
+			"optional": "cpp",
+			"atomic": "cpp",
+			"cmath": "cpp",
+			"memory_resource": "cpp",
+			"algorithm": "cpp",
+			"fstream": "cpp",
+			"istream": "cpp",
+			"limits": "cpp",
+			"numeric": "cpp",
+			"ostream": "cpp",
+			"sstream": "cpp",
+			"streambuf": "cpp",
+			"type_traits": "cpp",
+			"tuple": "cpp"
 		}
 	}
 }

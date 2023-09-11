@@ -10,11 +10,9 @@ class telemetry : public moto_task {
 
 public:
 
-    telemetry(const char *name) : moto_task(name, 50) {}
+    telemetry(const char *name) : moto_task(name, 250) {}
     telemetry(const char *name, unsigned long aInterval) : moto_task(name, aInterval) {}
-    
-    void init(void);
-    
+        
     int32_t get_starter_current(void) { return doc["adc"][ADC_STARTER_CURRENT]; }
     int32_t get_regulator_current(void) { return doc["adc"][ADC_REGULATOR_CURRENT]; }
     int32_t get_load_current(void) { return doc["adc"][ADC_LOAD_CURRENT]; }
@@ -31,16 +29,21 @@ public:
 
 protected:
 
-    bool begin(void) { return true; }
-    void update(void);
+    bool begin(void);
+    bool start(void) { return true; }
+    bool update(void);
     void exit(void) {}
 
 private:
 
-
     adc_conversion_t adc_raw_data[HAL_ADC_CH_NUM];
 
     StaticJsonDocument<512> doc;
+    JsonObject I, V;
+
+    char json_buffer[2048];
+
+    uint8_t dsel;
 
 };
 

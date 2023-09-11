@@ -10,15 +10,14 @@ public:
 
     canbus(const char *name) : moto_task(name, 10) {}
     canbus(const char *name, unsigned long aInterval) : moto_task(name, aInterval) {}
-
-    void init(void);
     
     void send_output_state_change(uint16_t states);
 
 protected:
 
-    bool begin(void) { return true; }
-    void update(void);
+    bool begin(void);
+    bool start(void) { return true; }
+    bool update(void);
     void exit(void) {}
 
 private:

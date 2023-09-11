@@ -17,8 +17,9 @@ public:
 
 protected:
 
-    bool begin(void);
-    void update(void);
+    bool begin(void) { return true; }
+    bool start(void);
+    bool update(void);
     void exit(void);
 
 private:

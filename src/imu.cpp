@@ -71,10 +71,11 @@ bool mm_imu::begin(void) {
     gyro_y = 0.0f;
     gyro_z = 0.0f;
 
-	return true;
+	return hal_imu_init();
+
 }
 
-void mm_imu::update(void) {
+bool mm_imu::update(void) {
 
     // while (!IS_ENABLED(CONFIG_MPU6050_TRIGGER)) {
 	// 	int rc = process_mpu6050(mpu6050);
@@ -88,6 +89,8 @@ void mm_imu::update(void) {
     // process_mpu6050(mpu6050);
 
 	hal_imu_update();
+
+	return true;
 
 }
 

@@ -5,7 +5,7 @@
 #include <stdbool.h>
 #include <stddef.h>
 
-    void hal_imu_init(void);
+    bool hal_imu_init(void);
     
     void hal_imu_update(void);
 

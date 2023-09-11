@@ -2,10 +2,10 @@
 #include "power.h"
 #include "hal.h"
 
-void turn_signals::update() {
+bool turn_signals::update() {
 
     if(mode == TURN_SIGNAL_MODE_OFF) {
-        return;
+        return true;
     }
 
     uint32_t elapsedTime = hal_millis() - blinker_timer;    
@@ -15,26 +15,30 @@ void turn_signals::update() {
         switch(mode) {
             case TURN_SIGNAL_MODE_LEFT_SHORT:
             case TURN_SIGNAL_MODE_LEFT_LONG:
-                pwr_output.set(POWER_OUTPUT_SIGNAL_RIGHT, false);
-                pwr_output.set(POWER_OUTPUT_SIGNAL_LEFT, true);
+                pwr_output[POWER_OUTPUT_SIGNAL_RIGHT].set(false, false);
+                pwr_output[POWER_OUTPUT_SIGNAL_LEFT].set(true, false);
+                mm_power::update_all();
                 break;
             
             case TURN_SIGNAL_MODE_RIGHT_SHORT:
             case TURN_SIGNAL_MODE_RIGHT_LONG:
-                pwr_output.set(POWER_OUTPUT_SIGNAL_LEFT, false);
-                pwr_output.set(POWER_OUTPUT_SIGNAL_RIGHT, true);
+                pwr_output[POWER_OUTPUT_SIGNAL_LEFT].set(false, false);
+                pwr_output[POWER_OUTPUT_SIGNAL_RIGHT].set(true, false);
+                mm_power::update_all();
                 break;
             
             case TURN_SIGNAL_MODE_HAZARD:
-                pwr_output.set(POWER_OUTPUT_TAIL_LIGHT, true);
-                pwr_output.set(POWER_OUTPUT_HEADLIGHT, true);
-                pwr_output.set(POWER_OUTPUT_SIGNAL_LEFT, true);
-                pwr_output.set(POWER_OUTPUT_SIGNAL_RIGHT, true);
+                pwr_output[POWER_OUTPUT_TAIL_LIGHT].set(true, false);
+                pwr_output[POWER_OUTPUT_HEADLIGHT].set(true, false);
+                pwr_output[POWER_OUTPUT_SIGNAL_LEFT].set(true, false);
+                pwr_output[POWER_OUTPUT_SIGNAL_RIGHT].set(true, false);
+                mm_power::update_all();
                 break;
             
             default:
-                pwr_output.set(POWER_OUTPUT_SIGNAL_LEFT, false);
-                pwr_output.set(POWER_OUTPUT_SIGNAL_RIGHT, false);
+                pwr_output[POWER_OUTPUT_SIGNAL_LEFT].set(false, false);
+                pwr_output[POWER_OUTPUT_SIGNAL_RIGHT].set(false, false);
+                mm_power::update_all();
                 break;         
         }
 
@@ -42,18 +46,21 @@ void turn_signals::update() {
     else if (elapsedTime < (BLINKER_TIMER_MS * 2)) {
         
         if(mode == TURN_SIGNAL_MODE_HAZARD) {
-            pwr_output.set(POWER_OUTPUT_TAIL_LIGHT, false);
-            pwr_output.set(POWER_OUTPUT_HEADLIGHT, false);
-            pwr_output.set(POWER_OUTPUT_SIGNAL_RIGHT, false);
-            pwr_output.set(POWER_OUTPUT_SIGNAL_LEFT, false);
+            pwr_output[POWER_OUTPUT_TAIL_LIGHT].set(false, false);
+            pwr_output[POWER_OUTPUT_HEADLIGHT].set(false, false);
+            pwr_output[POWER_OUTPUT_SIGNAL_LEFT].set(false, false);
+            pwr_output[POWER_OUTPUT_SIGNAL_RIGHT].set(false, false);
+            mm_power::update_all();
         }
         else if ( (mode == TURN_SIGNAL_MODE_LEFT_SHORT) || (mode == TURN_SIGNAL_MODE_LEFT_LONG) ) {
-            pwr_output.set(POWER_OUTPUT_SIGNAL_RIGHT, false);
-            pwr_output.set(POWER_OUTPUT_SIGNAL_LEFT, false);   
+            pwr_output[POWER_OUTPUT_SIGNAL_RIGHT].set(false, false);
+            pwr_output[POWER_OUTPUT_SIGNAL_LEFT].set(false, false);
+            mm_power::update_all();
         }
         else if( (mode == TURN_SIGNAL_MODE_RIGHT_SHORT) || (mode == TURN_SIGNAL_MODE_RIGHT_LONG) ) {
-            pwr_output.set(POWER_OUTPUT_SIGNAL_RIGHT, false);
-            pwr_output.set(POWER_OUTPUT_SIGNAL_LEFT, false);   
+            pwr_output[POWER_OUTPUT_SIGNAL_RIGHT].set(false, false);
+            pwr_output[POWER_OUTPUT_SIGNAL_LEFT].set(false, false);
+            mm_power::update_all();
         }
 
     }
@@ -66,6 +73,8 @@ void turn_signals::update() {
         blinker_timer = hal_millis();
     }
 
+    return true;
+
 }
 
 void turn_signals::setMode(turn_signal_mode_t newMode) {
@@ -76,18 +85,22 @@ void turn_signals::setMode(turn_signal_mode_t newMode) {
 
         case TURN_SIGNAL_MODE_OFF:
             if ( (mode == TURN_SIGNAL_MODE_LEFT_SHORT) || (mode == TURN_SIGNAL_MODE_LEFT_LONG) ) {
-                pwr_output.set(POWER_OUTPUT_SIGNAL_RIGHT, false);
-                pwr_output.set(POWER_OUTPUT_SIGNAL_LEFT, false);
+                pwr_output[POWER_OUTPUT_SIGNAL_RIGHT].set(false, false);
+                pwr_output[POWER_OUTPUT_SIGNAL_LEFT].set(false, false);
+                mm_power::update_all();
             }
             else if( (mode == TURN_SIGNAL_MODE_RIGHT_SHORT) || (mode == TURN_SIGNAL_MODE_RIGHT_LONG) ) {
-                pwr_output.set(POWER_OUTPUT_SIGNAL_RIGHT, false);
-                pwr_output.set(POWER_OUTPUT_SIGNAL_LEFT, false);
+                pwr_output[POWER_OUTPUT_SIGNAL_RIGHT].set(false, false);
+                pwr_output[POWER_OUTPUT_SIGNAL_LEFT].set(false, false);
+                mm_power::update_all();
             }
             else if( mode == TURN_SIGNAL_MODE_HAZARD) {
-                pwr_output.set(POWER_OUTPUT_TAIL_LIGHT, false);
-                pwr_output.set(POWER_OUTPUT_HEADLIGHT, false);
-                pwr_output.set(POWER_OUTPUT_SIGNAL_LEFT, false);
-                pwr_output.set(POWER_OUTPUT_SIGNAL_RIGHT, false);
+
+                pwr_output[POWER_OUTPUT_TAIL_LIGHT].set(false, false);
+                pwr_output[POWER_OUTPUT_HEADLIGHT].set(false, false);
+                pwr_output[POWER_OUTPUT_SIGNAL_LEFT].set(false, false);
+                pwr_output[POWER_OUTPUT_SIGNAL_RIGHT].set(false, false);
+                mm_power::update_all();
             }
             signal_count = 0;
             break;

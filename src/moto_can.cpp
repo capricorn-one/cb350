@@ -14,19 +14,19 @@ static void vfd_callback(uint16_t *data) {
 	// LOG_DBG("VFD CALLBACK HANDLER EXECUTED WITH STATES %u", frame.data[0]);
 }
 
-void canbus::init(void) {
+bool canbus::begin(void) {
 
 	hal_register_handlebar_callback(handlebar_callback);
 
 	hal_register_vfd_callback(vfd_callback);
 	
-	hal_can_init();
+	return hal_can_init();
 
 }
 
-void canbus::update(void) {
+bool canbus::update(void) {
 
-	
+	return true;	
 }
 
 void canbus::send_output_state_change(uint16_t states) {

@@ -4,7 +4,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-    void hal_can_init(void);
+    bool hal_can_init(void);
 
     void hal_can_send(uint32_t id, uint8_t *data, uint8_t len);
 

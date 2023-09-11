@@ -10,6 +10,11 @@ typedef struct {
     void (*delay_ms)(uint32_t ms);
 } pca9685_hal_t;
 
+typedef struct {
+    uint16_t on;
+    uint16_t off;
+} pwm_counters_t;
+
 class pca9685 {
 
 public:
@@ -40,12 +45,22 @@ public:
 
     void set_state(uint8_t ch, bool state);
 
+    void set_state(uint8_t ch, bool state, bool immediate);
+
+    void set_pwm_counters(void);
+
+    uint8_t get_reg_value(uint8_t reg);
+
 
 private:
 
+    pca9685_hal_t *hal;
+
     uint8_t i2c_addr;
 
-    pca9685_hal_t *hal;
+    pwm_counters_t pwm_counters[16];
+    bool enabled[16];
+
     /// @brief put the PCA9685 to sleep or wake it up
     /// @param state true = sleep, false = wake
     void sleep(bool state);
@@ -54,7 +69,7 @@ private:
 
     void set_output_mode(bool totempole);
 
-    void set_pwm_counters(uint8_t ch, uint16_t duty_cycle);
+    void set_pwm_counters(uint8_t ch, uint16_t on,uint16_t off, bool immediate);
 
     void set_pwm_counters(uint8_t ch, uint16_t on, uint16_t off);
 

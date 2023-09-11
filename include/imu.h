@@ -23,7 +23,8 @@ public:
 protected:
 
     bool begin(void);
-    void update(void);
+    bool start(void) { return true; }
+    bool update(void);
     void exit(void) {}
 
 private:

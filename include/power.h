@@ -3,41 +3,43 @@
 
 #include <stdint.h>
 #include <stdbool.h>
-#include "outputs.h"
-#include "pca9685.h"
 #include "mm_types.h"
 
 /* The power class handles the power output channels and telemetry for updating and reading from the
     higher powered output channels, controlled via PWM driver and the high current output drivers
 */
 
-typedef struct {
-    outputClass *output;
-    float current;
-} power_output_t;
-
 class mm_power {
 
 public:
 
-    mm_power(void);
+    mm_power(uint8_t pwm_channel, uint8_t pwr_output_num);
 
-    void init(void);
+    void set(bool state);
+    void set(bool state, bool immediate);
+    void set_duty_cycle(float duty_cycle);
 
-    void set(power_output_enum_t output_num, bool state);
-    bool get(power_output_enum_t output_num);
+    bool isEnabled(void) { return enabled; }
 
-    void set_duty_cycle(power_output_enum_t output_num, float duty_cycle);
+    float   get_current(void) { return current; }
+    void    set_current(float value) { current = value; }
 
-    float   get_current(power_output_enum_t output_num) { return power_outputs[output_num].current; }
-    void    set_current(power_output_enum_t output_num, float current) { power_outputs[output_num].current = current; }
+    static void update_all(void);
 
 private:
 
-    power_output_t power_outputs[POWER_OUTPUT_NUM];
+    uint8_t channel;
+    uint8_t output_num;
+
+    float current;
+
+    bool enabled;
+
+    static uint16_t output_states;
+    static uint16_t last_output_states;
 
 };
 
-extern mm_power pwr_output;
+extern mm_power pwr_output[POWER_OUTPUT_NUM];
 
 #endif // _MM_POWER_H

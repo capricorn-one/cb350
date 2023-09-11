@@ -158,14 +158,14 @@ int16_t analogDifferential(uint8_t pin_pos,uint8_t pin_neg) {
   
   uint32_t value_read = 0;
   
-  pinPeripheral(pin_pos,PIO_ANALOG); // set pins to analog mode
-  pinPeripheral(pin_neg,PIO_ANALOG);
+  // pinPeripheral(pin_pos,PIO_ANALOG); // set pins to analog mode
+  // pinPeripheral(pin_neg,PIO_ANALOG);
 
-  if((pin_pos == A0) || (pin_neg == A0)) { // Disable DAC
-    syncDAC();
-    DAC->CTRLA.bit.ENABLE = 0x00; // Disable DAC
-    syncDAC();
-  }
+  // if((pin_pos == A0) || (pin_neg == A0)) { // Disable DAC
+  //   syncDAC();
+  //   DAC->CTRLA.bit.ENABLE = 0x00; // Disable DAC
+  //   syncDAC();
+  // }
 
   syncADC();
   ADC->INPUTCTRL.bit.MUXPOS = g_APinDescription[pin_pos].ulADCChannelNumber; // Selection for the positive ADC input

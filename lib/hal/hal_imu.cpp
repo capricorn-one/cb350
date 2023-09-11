@@ -7,7 +7,8 @@
 static MPU6050 mpu;
 uint8_t devStatus;
 
-void hal_imu_init(void) {
+bool hal_imu_init(void) {
+
     IMU_WIRE.begin();
 
     mpu.initialize();
@@ -16,10 +17,12 @@ void hal_imu_init(void) {
 
     devStatus = mpu.dmpInitialize();
 
+    return true;
 }
 
 void hal_imu_update(void) {
-    mpu.resetFIFO();
+
+    // mpu.resetFIFO();
     // mpu.getFIFOBytes(mpu.fifoBuffer, 512);
     // mpu.dmpGetQuaternion(&q, mpu.fifoBuffer);
     // mpu.dmpGetGravity(&gravity, &q);

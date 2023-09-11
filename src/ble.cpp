@@ -1,20 +1,18 @@
 #include "ble.h"
 #include "hal.h"
 
-void ble_class::init(void) {
+bool ble_class::begin(void) {
 
     BLE_SERIAL.begin(1000000UL);        // 1Mbaud serial communication with BT840X NRF52840 module
     BLE_SERIAL.setTimeout(1);           // 1ms timeout for serial communication
-}
-
-bool ble_class::begin(void) {
 
     return true;
 }
 
-void ble_class::update(void) {
+bool ble_class::update(void) {
 
-    if(BLE_SERIAL.available()  == 0) return;
+    if(BLE_SERIAL.available()  == 0)
+        return true;
 
     StaticJsonDocument<250> doc;
 
@@ -36,6 +34,7 @@ void ble_class::update(void) {
 
     }
 
+    return true;
 }
 
 

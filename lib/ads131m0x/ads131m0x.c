@@ -23,18 +23,14 @@ static uint16_t transfer_data(ads131m0x_hal_t *hal, uint16_t cmd, uint16_t data)
 
 uint16_t ads131m0x_init(ads131m0x_hal_t *hal) {
     
-	uint16_t response;
-    // for(uint8_t i=0; i<ADS131M0X_CHANNEL_COUNT; i++) {
-	// 	hal->conversion[i].raw = 0;
-	// }
+    for(uint8_t i=0; i<ADS131M0X_CHANNEL_COUNT; i++) {
+		hal->conversion[i].raw = 0;
+	}
 	
-    ///* (OPTIONAL) Toggle nRESET pin to ensure default register settings. */
-    ///* NOTE: This also ensures that the device registers are unlocked.	 */
 	ads131m0x_reset(hal);
 
-    /* (OPTIONAL) Validate first response word when beginning SPI communication: (0xFF20 | CHANCNT) */
-    // uint16_t response = sendCommand(OPCODE_NULL);
-    response = sendCommand(hal, OPCODE_NULL);
+    /* Validate first response word when beginning SPI communication: (0xFF20 | CHANCNT) */
+    uint16_t response = sendCommand(hal, OPCODE_NULL);
 
 	writeSingleRegister(hal, CLOCK_ADDRESS, hal->clock);
 
@@ -43,9 +39,6 @@ uint16_t ads131m0x_init(ads131m0x_hal_t *hal) {
 	ads131m0x_channel_pga_update(hal);
 
 	ads131m0x_resync(hal);
-
-	sendCommand(hal, OPCODE_NULL);	// clear FIFO
-
 	
 	return response;
 }
@@ -61,32 +54,20 @@ void ads131m0x_resync(ads131m0x_hal_t *hal) {
     hal->set_syncResetPin(false);
     hal->delay_us(3);
     hal->set_syncResetPin(true);
+
+	sendCommand(hal, OPCODE_NULL);	// clear FIFO
 }
 
 // Wait for new data to come in (assumes interrupt triggered DMA transactions)
-uint16_t ads131m0x_wait_for_new_conversion(ads131m0x_hal_t *hal, uint32_t timeout_ms) {
+uint16_t ads131m0x_process_new_conversion(ads131m0x_hal_t *hal) {
 
-	uint32_t wait_start_time_ms = hal->millis();
-
-	// while((hal->transfer_buffer[1] != 0x00) && ((hal->millis() - wait_start_time_ms) < timeout_ms)) {
-
-	// }
-	while((hal->dataReady() == false) && ((hal->millis() - wait_start_time_ms) < timeout_ms)) {
-
-	}
-
-	if(hal->millis() - wait_start_time_ms >= timeout_ms) {
-		return 0xFFFF;
-	}
-	else {
-		for(uint8_t i=0; i<ADS131M0X_CHANNEL_COUNT; i++) {
+	for(uint8_t i=0; i<ADS131M0X_CHANNEL_COUNT; i++) {
+	
+		hal->conversion[i].b[3] = hal->transfer_buffer[3*(i+1) + 0];
+		hal->conversion[i].b[2] = hal->transfer_buffer[3*(i+1) + 1];
+		hal->conversion[i].b[1] = hal->transfer_buffer[3*(i+1) + 2];
 		
-			hal->conversion[i].b[3] = hal->transfer_buffer[3*(i+1) + 0];
-			hal->conversion[i].b[2] = hal->transfer_buffer[3*(i+1) + 1];
-			hal->conversion[i].b[1] = hal->transfer_buffer[3*(i+1) + 2];
-			
-			hal->conversion[i].raw = hal->conversion[i].raw>>8;		// Right-shift of signed data maintains signed bit
-		}
+		hal->conversion[i].raw = hal->conversion[i].raw>>8;		// Right-shift of signed data maintains signed bit
 	}
 
 	return hal->transfer_buffer[0]<<8 | hal->transfer_buffer[1];
