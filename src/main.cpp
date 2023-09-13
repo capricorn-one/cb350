@@ -8,6 +8,15 @@
 #include "turnSignals.h"
 #include "imu.h"
 
+/*
+
+  Things we still need
+
+  1. Handlebar switch data reception.
+  2. Fix the PWM output controller to appropriately handle all channels
+
+*/
+
 typedef struct {
     uint16_t on;
     uint16_t off;

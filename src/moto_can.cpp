@@ -4,14 +4,15 @@
 #include "hal.h"
 #include "hal_can.h"
 
-static void handlebar_callback(uint16_t *data) {
+static void handlebar_callback(uint8_t *data) {
+
+	LOG_INF("Received handlebar switch states: %d, %d", data[0], data[1]);
+
 	moto.handleBarCallbackHandler((moto_pushbutton_num_t)data[0], (moto_switch_trigger_t)data[1]);
-	// LOG_DBG("HANDLEBAR CALLBACK HANDLER EXECUTED WITH STATES %u", frame.data[0]);
 }
 
 static void vfd_callback(uint16_t *data) {
 	moto.vfdTelemetryCallbackHandler((vfd_telem_t *)data);
-	// LOG_DBG("VFD CALLBACK HANDLER EXECUTED WITH STATES %u", frame.data[0]);
 }
 
 bool canbus::begin(void) {
@@ -26,11 +27,12 @@ bool canbus::begin(void) {
 
 bool canbus::update(void) {
 
+	hal_can_update();
+
 	return true;	
 }
 
 void canbus::send_output_state_change(uint16_t states) {
-
 	hal_can_send(MM_CAN_ID_HUB_OUTPUT_STATES, (uint8_t *)&states, sizeof(states));
 }
 

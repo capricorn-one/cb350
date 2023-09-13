@@ -59,8 +59,6 @@ bool motorcycle::start(void) {
     // imu.enable();
     moto_can.enable();
     // ble.enable();
-
-    blinkers.setMode(TURN_SIGNAL_MODE_HAZARD);
     
     setMode(MOTO_MODE_IGNITION);
 

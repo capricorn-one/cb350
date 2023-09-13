@@ -112,7 +112,7 @@ typedef enum {
 
 // CAN BUS MESSAGES
 
-#define MM_CAN_ID_MASK                          0x7FF
+#define MM_CAN_ID_MASK                          0x71F
 
 #define MM_CAN_ID_HANDLEBAR_SWITCH_STATES       0x101
 #define MM_CAN_ID_VFD_TELEM                     0x111

@@ -223,13 +223,13 @@ uint16_t hal_adc_read_conversion(void) {
     ads131m0x_resync(&adc_hal);
 
     while((digitalRead(PIN_ADC_DRDY) == HIGH) && ((hal_millis() - wait_start_time_ms) < 100)) {
-        yield();
+        // yield();
     }
     
     if( (hal_millis() - wait_start_time_ms) < 100 ) {
         adc_drdy_pin_change_callback();
         while(newDataReady == false) {
-            yield();
+            // yield();
         }
         status = ads131m0x_process_new_conversion(&adc_hal);
     }
