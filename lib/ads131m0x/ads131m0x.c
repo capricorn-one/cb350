@@ -32,13 +32,13 @@ uint16_t ads131m0x_init(ads131m0x_hal_t *hal) {
     /* Validate first response word when beginning SPI communication: (0xFF20 | CHANCNT) */
     uint16_t response = sendCommand(hal, OPCODE_NULL);
 
+	response = readSingleRegister(hal, ID_ADDRESS);
+
 	writeSingleRegister(hal, CLOCK_ADDRESS, hal->clock);
 
 	writeSingleRegister(hal, CFG_ADDRESS, hal->config);
 	
 	ads131m0x_channel_pga_update(hal);
-
-	ads131m0x_resync(hal);
 	
 	return response;
 }
@@ -54,8 +54,6 @@ void ads131m0x_resync(ads131m0x_hal_t *hal) {
     hal->set_syncResetPin(false);
     hal->delay_us(3);
     hal->set_syncResetPin(true);
-
-	sendCommand(hal, OPCODE_NULL);	// clear FIFO
 }
 
 // Wait for new data to come in (assumes interrupt triggered DMA transactions)
@@ -63,14 +61,18 @@ uint16_t ads131m0x_process_new_conversion(ads131m0x_hal_t *hal) {
 
 	for(uint8_t i=0; i<ADS131M0X_CHANNEL_COUNT; i++) {
 	
-		hal->conversion[i].b[3] = hal->transfer_buffer[3*(i+1) + 0];
-		hal->conversion[i].b[2] = hal->transfer_buffer[3*(i+1) + 1];
-		hal->conversion[i].b[1] = hal->transfer_buffer[3*(i+1) + 2];
+		hal->conversion[i].b[3] = hal->rx_buffer[3*(i+1) + 0];
+		hal->conversion[i].b[2] = hal->rx_buffer[3*(i+1) + 1];
+		hal->conversion[i].b[1] = hal->rx_buffer[3*(i+1) + 2];
 		
 		hal->conversion[i].raw = hal->conversion[i].raw>>8;		// Right-shift of signed data maintains signed bit
 	}
 
-	return hal->transfer_buffer[0]<<8 | hal->transfer_buffer[1];
+	return hal->rx_buffer[0]<<8 | hal->rx_buffer[1];
+}
+
+void ads131m0x_start_conversion(ads131m0x_hal_t *hal) {
+	sendCommand(hal, OPCODE_NULL);
 }
 
 void ads131m0x_enable_channels(ads131m0x_hal_t *hal, uint8_t enabled_channel_bitmap) {
@@ -148,21 +150,25 @@ void ads131m0x_wakeup(ads131m0x_hal_t *hal) {
 
 static uint16_t transfer_data(ads131m0x_hal_t *hal, uint16_t cmd, uint16_t data) {
 	
-	hal->transfer_buffer[0] = cmd>>8;
-	hal->transfer_buffer[1] = cmd&0xFF;
-	hal->transfer_buffer[2] = 0x00;
+	hal->tx_buffer[0] = cmd>>8;
+	hal->tx_buffer[1] = cmd&0xFF;
+	hal->tx_buffer[2] = 0x00;
 	
-	hal->transfer_buffer[3] = data>>8;
-	hal->transfer_buffer[4] = data&0xFF;
-	hal->transfer_buffer[5] = 0x00;
+	hal->tx_buffer[3] = data>>8;
+	hal->tx_buffer[4] = data&0xFF;
+	hal->tx_buffer[5] = 0x00;
 
-	memset((void *)&hal->transfer_buffer[6], 0, 24);
+	memset((void *)&hal->tx_buffer[6], 0, 24);
 	
 	hal->transferFrame(FRAME_LENGTH);
 	
-	//rx_buffer[27...29] = CRC
+	//hal->tx_buffer[27...29] = CRC
 
-	return ((hal->transfer_buffer[0]<<8) | (hal->transfer_buffer[1]&0xFF));
+	// All "words" are 24 bits long, and come in MSB first with the LSB padded with zeroes
+	// For little endian systems, the response byte is in rx_buffer[0] and rx_buffer[1]
+	// To adjust for the endianness, we need to swap the bytes in the response  word
+	return ((hal->rx_buffer[0]<<8) | (hal->rx_buffer[1]&0xFF));
+	
 }
 
 //*****************************************************************************

@@ -40,9 +40,9 @@ extern "C" {
         void		(*delay_us)(uint32_t microseconds);
 		uint32_t	(*millis)(void);
 		void		(*set_syncResetPin)(bool state);
-		bool		(*dataReady)(void);
 		void		(*transferFrame)(uint8_t frame_length);
-		uint8_t 	*transfer_buffer;
+		uint8_t 	*tx_buffer;
+		uint8_t 	*rx_buffer;
 		uint16_t 	clock;
 		uint16_t 	config;
 		uint8_t 	gain[ADS131M0X_CHANNEL_COUNT];		// more memory but much faster execution for conversions
@@ -59,6 +59,8 @@ extern "C" {
 
 
     // Command Functions
+	void ads131m0x_start_conversion(ads131m0x_hal_t *hal);
+
 	void ads131m0x_enable_channels(ads131m0x_hal_t *hal, uint8_t enabled_channel_bitmap);
 
 	void ads131m0x_disable_channels(ads131m0x_hal_t *hal, uint8_t disabled_channel_bitmap);

@@ -1,11 +1,13 @@
- #ifndef HAL_ADC_H_
+#ifndef HAL_ADC_H_
 #define	HAL_ADC_H_
 
     #include <stdint.h>
     #include <stdbool.h>
     #include "../ads131m0x/ads131m0x.h"
 
-    #define HAL_ADC_CH_NUM 8
+    #define HAL_ADC_NUM             1
+    #define HAL_ADC_DEV_CH_NUM      8
+    #define HAL_ADC_CH_NUM          (HAL_ADC_NUM * HAL_ADC_DEV_CH_NUM)
 
     typedef enum adc_power_mode {
         ADC_POWER_MODE_STANDBY = 0,
@@ -27,7 +29,13 @@
 
     void hal_adc_clock_enable(bool state);
 
-    uint16_t hal_adc_read_conversion(void);
+    void hal_adc_continous_read(bool state);
+
+    uint16_t hal_adc_read_continous_conversion(bool wait_for_new_data = true);
+
+    uint16_t hal_adc_read_conversion_immediate(void);
+
+    void hal_adc_synchronize(void);
 
     void hal_adc_enable_channels(uint8_t channel_bitmap);
 

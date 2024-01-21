@@ -28,13 +28,17 @@ bool telemetry::begin(void) {
     I = doc.createNestedObject("I");
     V = doc.createNestedObject("V");
 
-    return hal_adc_init(adc_raw_data);
+    hal_adc_init(adc_raw_data);
+
+    hal_adc_synchronize();
+    
+    return true;
 }
 
 bool telemetry::update(void) {
 
     // LOG_INF("*****TELEM******");5
-    hal_adc_read_conversion();
+    hal_adc_read_conversion_immediate();
 
     doc["time"] = millis();
 

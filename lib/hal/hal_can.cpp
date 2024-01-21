@@ -1,6 +1,6 @@
 #include "hal_can.h"
 #include "hal.h"
-#include <SPI.h>
+#include <SPI_DMA.h>
 #include <ACAN2515.h>
 #include "mm_types.h"
 

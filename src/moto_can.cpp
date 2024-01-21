@@ -11,7 +11,7 @@ static void handlebar_callback(uint8_t *data) {
 	moto.handleBarCallbackHandler((moto_pushbutton_num_t)data[0], (moto_switch_trigger_t)data[1]);
 }
 
-static void vfd_callback(uint16_t *data) {
+static void vfd_callback(uint8_t *data) {
 	moto.vfdTelemetryCallbackHandler((vfd_telem_t *)data);
 }
 
